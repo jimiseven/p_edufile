@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 04-09-2025 a las 12:35:39
+-- Tiempo de generación: 04-09-2025 a las 12:26:57
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de datos: `colegiov4`
+-- Base de datos: `colegiov3`
 --
 
 -- --------------------------------------------------------
@@ -59,10 +59,10 @@ CREATE TABLE `bimestres_activos` (
 
 CREATE TABLE `calificaciones` (
   `id_calificacion` int(11) NOT NULL,
-  `id_estudiante` int(11) NOT NULL COMMENT 'FK a estudiantes',
-  `id_materia` int(11) NOT NULL COMMENT 'FK a materias',
-  `bimestre` int(11) NOT NULL COMMENT 'Número del bimestre: 1, 2, 3, 4',
-  `calificacion` float NOT NULL DEFAULT 0,
+  `id_estudiante` int(11) NOT NULL,
+  `id_materia` int(11) NOT NULL,
+  `bimestre` int(11) NOT NULL,
+  `calificacion` decimal(5,2) NOT NULL,
   `comentario` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -74,7 +74,7 @@ CREATE TABLE `calificaciones` (
 
 CREATE TABLE `configuracion_sistema` (
   `id` int(11) NOT NULL,
-  `cantidad_bimestres` int(11) NOT NULL DEFAULT 3,
+  `cantidad_bimestres` int(11) NOT NULL DEFAULT 4,
   `bimestre_actual` int(11) NOT NULL DEFAULT 1,
   `anio_escolar` varchar(9) NOT NULL,
   `fecha_modificacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -88,9 +88,9 @@ CREATE TABLE `configuracion_sistema` (
 
 CREATE TABLE `cursos` (
   `id_curso` int(11) NOT NULL,
-  `nivel` varchar(20) NOT NULL COMMENT 'Ej: Kinder, Primaria, Secundaria',
-  `curso` int(11) NOT NULL COMMENT 'Número del curso, ej: 1, 2, 3',
-  `paralelo` varchar(5) NOT NULL COMMENT 'Ej: A, B, C'
+  `nivel` varchar(20) NOT NULL,
+  `curso` int(11) NOT NULL,
+  `paralelo` varchar(5) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -101,8 +101,8 @@ CREATE TABLE `cursos` (
 
 CREATE TABLE `cursos_materias` (
   `id_curso_materia` int(11) NOT NULL,
-  `id_curso` int(11) NOT NULL COMMENT 'FK a cursos',
-  `id_materia` int(11) NOT NULL COMMENT 'FK a materias'
+  `id_curso` int(11) NOT NULL,
+  `id_materia` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -113,17 +113,18 @@ CREATE TABLE `cursos_materias` (
 
 CREATE TABLE `estudiantes` (
   `id_estudiante` int(11) NOT NULL,
-  `nombres` varchar(255) NOT NULL,
-  `apellido_paterno` varchar(255) DEFAULT NULL,
-  `apellido_materno` varchar(255) DEFAULT NULL,
-  `genero` enum('Masculino','Femenino') DEFAULT NULL,
-  `rude` varchar(20) NOT NULL COMMENT 'Registro Único de Estudiante',
+  `nombres` varchar(100) NOT NULL,
+  `apellido_paterno` varchar(100) NOT NULL,
+  `apellido_materno` varchar(100) DEFAULT NULL,
   `carnet_identidad` varchar(20) DEFAULT NULL,
+  `genero` enum('Masculino','Femenino') DEFAULT NULL,
+  `rude` varchar(20) NOT NULL,
   `fecha_nacimiento` date DEFAULT NULL,
-  `pais` enum('Bolivia','Chile','Argentina') DEFAULT NULL,
-  `provincia_departamento` varchar(100) DEFAULT NULL,
-  `id_curso` int(11) DEFAULT NULL COMMENT 'FK al curso en el que está matriculado',
-  `id_responsable` int(11) DEFAULT NULL
+  `pais` varchar(50) NOT NULL,
+  `departamento` varchar(50) NOT NULL,
+  `provincia` varchar(50) NOT NULL,
+  `localidad` varchar(100) DEFAULT NULL,
+  `id_curso` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -211,6 +212,25 @@ CREATE TABLE `estudiante_idioma_cultura` (
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `estudiante_responsable`
+--
+
+CREATE TABLE `estudiante_responsable` (
+  `id` int(11) NOT NULL,
+  `id_estudiante` int(11) NOT NULL,
+  `vive_con` enum('padre_madre','padre','madre','tutor') DEFAULT NULL,
+  `nombre` varchar(100) NOT NULL,
+  `apellido_paterno` varchar(100) NOT NULL,
+  `apellido_materno` varchar(100) DEFAULT NULL,
+  `idioma` varchar(50) DEFAULT NULL,
+  `grado_instruccion` enum('primaria','secundaria','licenciatura','tecnico_superior') DEFAULT NULL,
+  `carnet_identidad` varchar(20) DEFAULT NULL,
+  `fecha_nacimiento` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `estudiante_salud`
 --
 
@@ -262,7 +282,7 @@ CREATE TABLE `estudiante_transporte` (
 
 CREATE TABLE `materias` (
   `id_materia` int(11) NOT NULL,
-  `nombre_materia` varchar(255) NOT NULL COMMENT 'Nombre de la materia, ej: Matemáticas, Física',
+  `nombre_materia` varchar(255) NOT NULL,
   `es_submateria` tinyint(1) DEFAULT 0,
   `materia_padre_id` int(11) DEFAULT NULL,
   `es_extra` tinyint(1) NOT NULL DEFAULT 0
@@ -278,11 +298,11 @@ CREATE TABLE `personal` (
   `id_personal` int(11) NOT NULL,
   `nombres` varchar(255) NOT NULL,
   `apellidos` varchar(255) NOT NULL,
-  `celular` varchar(20) DEFAULT NULL COMMENT 'Ej: Número de contacto del usuario',
+  `celular` varchar(20) DEFAULT NULL,
   `carnet_identidad` varchar(20) NOT NULL,
-  `id_rol` int(11) NOT NULL COMMENT 'FK a roles',
+  `id_rol` int(11) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `estado` tinyint(1) NOT NULL DEFAULT 1 COMMENT '1=habilitado, 0=inhabilitado'
+  `estado` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -293,29 +313,9 @@ CREATE TABLE `personal` (
 
 CREATE TABLE `profesores_materias_cursos` (
   `id_profesor_materia_curso` int(11) NOT NULL,
-  `id_personal` int(11) NOT NULL COMMENT 'FK a personal (profesor)',
-  `id_curso_materia` int(11) NOT NULL COMMENT 'FK a cursos_materias',
-  `estado` enum('FALTA','CARGADO') NOT NULL DEFAULT 'FALTA'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `responsables`
---
-
-CREATE TABLE `responsables` (
-  `id_responsable` int(11) NOT NULL,
-  `nombres` varchar(255) NOT NULL,
-  `apellido_paterno` varchar(255) DEFAULT NULL,
-  `apellido_materno` varchar(255) DEFAULT NULL,
-  `carnet_identidad` varchar(20) DEFAULT NULL,
-  `fecha_nacimiento` date DEFAULT NULL,
-  `grado_instruccion` enum('Ninguno','Primaria','Secundaria','Técnico','Universitario','Postgrado') DEFAULT NULL,
-  `idioma_frecuente` varchar(100) DEFAULT NULL,
-  `parentesco` enum('Padre','Madre','Tutor','Otro') DEFAULT NULL,
-  `celular` varchar(20) DEFAULT NULL,
-  `creado_en` timestamp NOT NULL DEFAULT current_timestamp()
+  `id_personal` int(11) NOT NULL,
+  `id_curso_materia` int(11) NOT NULL,
+  `estado` enum('FALTA','CARGADO') DEFAULT 'FALTA'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -326,7 +326,7 @@ CREATE TABLE `responsables` (
 
 CREATE TABLE `roles` (
   `id_rol` int(11) NOT NULL,
-  `nombre_rol` varchar(50) NOT NULL COMMENT 'Ej: Administrador, Profesor, Secretario'
+  `nombre_rol` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -337,7 +337,8 @@ CREATE TABLE `roles` (
 -- Indices de la tabla `anuncios`
 --
 ALTER TABLE `anuncios`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `creado_por` (`creado_por`);
 
 --
 -- Indices de la tabla `bimestres_activos`
@@ -350,7 +351,7 @@ ALTER TABLE `bimestres_activos`
 --
 ALTER TABLE `calificaciones`
   ADD PRIMARY KEY (`id_calificacion`),
-  ADD UNIQUE KEY `id_estudiante` (`id_estudiante`,`id_materia`,`bimestre`),
+  ADD UNIQUE KEY `nota_unica` (`id_estudiante`,`id_materia`,`bimestre`),
   ADD KEY `id_materia` (`id_materia`);
 
 --
@@ -370,7 +371,7 @@ ALTER TABLE `cursos`
 --
 ALTER TABLE `cursos_materias`
   ADD PRIMARY KEY (`id_curso_materia`),
-  ADD KEY `id_curso` (`id_curso`),
+  ADD UNIQUE KEY `curso_materia` (`id_curso`,`id_materia`),
   ADD KEY `id_materia` (`id_materia`);
 
 --
@@ -378,8 +379,11 @@ ALTER TABLE `cursos_materias`
 --
 ALTER TABLE `estudiantes`
   ADD PRIMARY KEY (`id_estudiante`),
+  ADD UNIQUE KEY `rude` (`rude`),
   ADD KEY `id_curso` (`id_curso`),
-  ADD KEY `idx_estudiantes_id_responsable` (`id_responsable`);
+  ADD KEY `idx_estudiante_cedula` (`carnet_identidad`),
+  ADD KEY `idx_estudiante_genero` (`genero`),
+  ADD KEY `idx_estudiante_departamento` (`departamento`);
 
 --
 -- Indices de la tabla `estudiante_abandono`
@@ -417,6 +421,14 @@ ALTER TABLE `estudiante_idioma_cultura`
   ADD UNIQUE KEY `unq_estudiante_idioma` (`id_estudiante`);
 
 --
+-- Indices de la tabla `estudiante_responsable`
+--
+ALTER TABLE `estudiante_responsable`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unq_estudiante_resp` (`id_estudiante`),
+  ADD KEY `idx_responsable_cedula` (`carnet_identidad`);
+
+--
 -- Indices de la tabla `estudiante_salud`
 --
 ALTER TABLE `estudiante_salud`
@@ -441,7 +453,8 @@ ALTER TABLE `estudiante_transporte`
 -- Indices de la tabla `materias`
 --
 ALTER TABLE `materias`
-  ADD PRIMARY KEY (`id_materia`);
+  ADD PRIMARY KEY (`id_materia`),
+  ADD KEY `materia_padre_id` (`materia_padre_id`);
 
 --
 -- Indices de la tabla `personal`
@@ -456,15 +469,8 @@ ALTER TABLE `personal`
 --
 ALTER TABLE `profesores_materias_cursos`
   ADD PRIMARY KEY (`id_profesor_materia_curso`),
-  ADD UNIQUE KEY `id_personal` (`id_personal`,`id_curso_materia`),
+  ADD UNIQUE KEY `prof_curso_materia` (`id_personal`,`id_curso_materia`),
   ADD KEY `id_curso_materia` (`id_curso_materia`);
-
---
--- Indices de la tabla `responsables`
---
-ALTER TABLE `responsables`
-  ADD PRIMARY KEY (`id_responsable`),
-  ADD UNIQUE KEY `uk_responsables_ci` (`carnet_identidad`);
 
 --
 -- Indices de la tabla `roles`
@@ -549,6 +555,12 @@ ALTER TABLE `estudiante_idioma_cultura`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `estudiante_responsable`
+--
+ALTER TABLE `estudiante_responsable`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `estudiante_salud`
 --
 ALTER TABLE `estudiante_salud`
@@ -585,12 +597,6 @@ ALTER TABLE `profesores_materias_cursos`
   MODIFY `id_profesor_materia_curso` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de la tabla `responsables`
---
-ALTER TABLE `responsables`
-  MODIFY `id_responsable` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT de la tabla `roles`
 --
 ALTER TABLE `roles`
@@ -599,6 +605,12 @@ ALTER TABLE `roles`
 --
 -- Restricciones para tablas volcadas
 --
+
+--
+-- Filtros para la tabla `anuncios`
+--
+ALTER TABLE `anuncios`
+  ADD CONSTRAINT `anuncios_ibfk_1` FOREIGN KEY (`creado_por`) REFERENCES `personal` (`id_personal`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `calificaciones`
@@ -618,56 +630,67 @@ ALTER TABLE `cursos_materias`
 -- Filtros para la tabla `estudiantes`
 --
 ALTER TABLE `estudiantes`
-  ADD CONSTRAINT `estudiantes_ibfk_1` FOREIGN KEY (`id_curso`) REFERENCES `cursos` (`id_curso`) ON DELETE SET NULL ON UPDATE CASCADE,
-  ADD CONSTRAINT `estudiantes_ibfk_responsable` FOREIGN KEY (`id_responsable`) REFERENCES `responsables` (`id_responsable`) ON DELETE SET NULL ON UPDATE CASCADE;
+  ADD CONSTRAINT `estudiantes_ibfk_1` FOREIGN KEY (`id_curso`) REFERENCES `cursos` (`id_curso`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `estudiante_abandono`
 --
 ALTER TABLE `estudiante_abandono`
-  ADD CONSTRAINT `fk_abandono_estudiante` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `estudiante_abandono_ibfk_1` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `estudiante_actividad_laboral`
 --
 ALTER TABLE `estudiante_actividad_laboral`
-  ADD CONSTRAINT `fk_trabajo_estudiante` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `estudiante_actividad_laboral_ibfk_1` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `estudiante_dificultades`
 --
 ALTER TABLE `estudiante_dificultades`
-  ADD CONSTRAINT `fk_dificultades_estudiante` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `estudiante_dificultades_ibfk_1` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `estudiante_direccion`
 --
 ALTER TABLE `estudiante_direccion`
-  ADD CONSTRAINT `fk_direccion_estudiante` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `estudiante_direccion_ibfk_1` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `estudiante_idioma_cultura`
 --
 ALTER TABLE `estudiante_idioma_cultura`
-  ADD CONSTRAINT `fk_idioma_cultura_estudiante` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `estudiante_idioma_cultura_ibfk_1` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `estudiante_responsable`
+--
+ALTER TABLE `estudiante_responsable`
+  ADD CONSTRAINT `estudiante_responsable_ibfk_1` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `estudiante_salud`
 --
 ALTER TABLE `estudiante_salud`
-  ADD CONSTRAINT `fk_salud_estudiante` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `estudiante_salud_ibfk_1` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `estudiante_servicios`
 --
 ALTER TABLE `estudiante_servicios`
-  ADD CONSTRAINT `fk_servicios_estudiante` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `estudiante_servicios_ibfk_1` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `estudiante_transporte`
 --
 ALTER TABLE `estudiante_transporte`
-  ADD CONSTRAINT `fk_transporte_estudiante` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `estudiante_transporte_ibfk_1` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `materias`
+--
+ALTER TABLE `materias`
+  ADD CONSTRAINT `materias_ibfk_1` FOREIGN KEY (`materia_padre_id`) REFERENCES `materias` (`id_materia`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `personal`
