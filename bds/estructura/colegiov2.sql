@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 04-09-2025 a las 11:39:17
+-- Tiempo de generación: 04-09-2025 a las 12:16:21
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de datos: `colegiov2`
+-- Base de datos: `colegiov4`
 --
 
 -- --------------------------------------------------------
@@ -120,7 +120,10 @@ CREATE TABLE `estudiantes` (
   `rude` varchar(20) NOT NULL COMMENT 'Registro Único de Estudiante',
   `carnet_identidad` varchar(20) DEFAULT NULL,
   `fecha_nacimiento` date DEFAULT NULL,
-  `id_curso` int(11) DEFAULT NULL COMMENT 'FK al curso en el que está matriculado'
+  `pais` enum('Bolivia','Chile','Argentina') DEFAULT NULL,
+  `provincia_departamento` varchar(100) DEFAULT NULL,
+  `id_curso` int(11) DEFAULT NULL COMMENT 'FK al curso en el que está matriculado',
+  `id_responsable` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -165,6 +168,26 @@ CREATE TABLE `profesores_materias_cursos` (
   `id_personal` int(11) NOT NULL COMMENT 'FK a personal (profesor)',
   `id_curso_materia` int(11) NOT NULL COMMENT 'FK a cursos_materias',
   `estado` enum('FALTA','CARGADO') NOT NULL DEFAULT 'FALTA'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `responsables`
+--
+
+CREATE TABLE `responsables` (
+  `id_responsable` int(11) NOT NULL,
+  `nombres` varchar(255) NOT NULL,
+  `apellido_paterno` varchar(255) DEFAULT NULL,
+  `apellido_materno` varchar(255) DEFAULT NULL,
+  `carnet_identidad` varchar(20) DEFAULT NULL,
+  `fecha_nacimiento` date DEFAULT NULL,
+  `grado_instruccion` enum('Ninguno','Primaria','Secundaria','Técnico','Universitario','Postgrado') DEFAULT NULL,
+  `idioma_frecuente` varchar(100) DEFAULT NULL,
+  `parentesco` enum('Padre','Madre','Tutor','Otro') DEFAULT NULL,
+  `celular` varchar(20) DEFAULT NULL,
+  `creado_en` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -227,7 +250,8 @@ ALTER TABLE `cursos_materias`
 --
 ALTER TABLE `estudiantes`
   ADD PRIMARY KEY (`id_estudiante`),
-  ADD KEY `id_curso` (`id_curso`);
+  ADD KEY `id_curso` (`id_curso`),
+  ADD KEY `idx_estudiantes_id_responsable` (`id_responsable`);
 
 --
 -- Indices de la tabla `materias`
@@ -250,6 +274,13 @@ ALTER TABLE `profesores_materias_cursos`
   ADD PRIMARY KEY (`id_profesor_materia_curso`),
   ADD UNIQUE KEY `id_personal` (`id_personal`,`id_curso_materia`),
   ADD KEY `id_curso_materia` (`id_curso_materia`);
+
+--
+-- Indices de la tabla `responsables`
+--
+ALTER TABLE `responsables`
+  ADD PRIMARY KEY (`id_responsable`),
+  ADD UNIQUE KEY `uk_responsables_ci` (`carnet_identidad`);
 
 --
 -- Indices de la tabla `roles`
@@ -322,6 +353,12 @@ ALTER TABLE `profesores_materias_cursos`
   MODIFY `id_profesor_materia_curso` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `responsables`
+--
+ALTER TABLE `responsables`
+  MODIFY `id_responsable` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `roles`
 --
 ALTER TABLE `roles`
@@ -349,7 +386,8 @@ ALTER TABLE `cursos_materias`
 -- Filtros para la tabla `estudiantes`
 --
 ALTER TABLE `estudiantes`
-  ADD CONSTRAINT `estudiantes_ibfk_1` FOREIGN KEY (`id_curso`) REFERENCES `cursos` (`id_curso`) ON DELETE SET NULL ON UPDATE CASCADE;
+  ADD CONSTRAINT `estudiantes_ibfk_1` FOREIGN KEY (`id_curso`) REFERENCES `cursos` (`id_curso`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `estudiantes_ibfk_responsable` FOREIGN KEY (`id_responsable`) REFERENCES `responsables` (`id_responsable`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `personal`
