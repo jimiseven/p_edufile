@@ -10,14 +10,25 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 1) {
 
 $conn = (new Database())->connect();
 
-// Obtener todos los cursos de primaria
+// Obtener todos los cursos de primaria con datos de estudiantes
 $stmt = $conn->query("
-    SELECT c.id_curso, c.curso, c.paralelo 
+    SELECT c.id_curso, c.curso, c.paralelo,
+           COUNT(e.id_estudiante) as total_estudiantes,
+           SUM(CASE WHEN e.genero = 'Masculino' THEN 1 ELSE 0 END) as hombres,
+           SUM(CASE WHEN e.genero = 'Femenino' THEN 1 ELSE 0 END) as mujeres
     FROM cursos c
+    LEFT JOIN estudiantes e ON c.id_curso = e.id_curso
     WHERE c.nivel = 'Primaria'
+    GROUP BY c.id_curso, c.curso, c.paralelo
     ORDER BY c.curso, c.paralelo
 ");
 $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Calcular totales generales
+$total_cursos = count($cursos);
+$total_estudiantes = array_sum(array_column($cursos, 'total_estudiantes'));
+$total_hombres = array_sum(array_column($cursos, 'hombres'));
+$total_mujeres = array_sum(array_column($cursos, 'mujeres'));
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -160,6 +171,68 @@ $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         body:not(.dark-mode) .toggle-switch label {
             color: #1877c9;
         }
+
+        /* Estilos para las tarjetas de resumen */
+        .summary-cards {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .summary-card {
+            background: #fff;
+            border: 2px solid #000;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            flex: 1;
+            min-width: 200px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .summary-card .number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 5px;
+        }
+
+        .summary-card .label {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .summary-card .gender-breakdown {
+            text-align: left;
+            margin-top: 10px;
+        }
+
+        .summary-card .gender-row {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        /* Modo oscuro para las tarjetas */
+        body.dark-mode .summary-card {
+            background: #2a2a2a;
+            border-color: #555;
+            color: #eaeaea;
+        }
+
+        body.dark-mode .summary-card .number,
+        body.dark-mode .summary-card .label,
+        body.dark-mode .summary-card .gender-row {
+            color: #000;
+        }
+
+        /* Forzar texto negro en las tarjetas de género */
+        .summary-card .gender-row {
+            color: #000 !important;
+        }
     </style>
 </head>
 
@@ -182,8 +255,32 @@ $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="content-wrapper">
                     <!-- Título Principal -->
                     <div class="title-box mb-4">
-                        <h2 class="mb-0" style="color:#4682B4;">Cursos de Primaria</h2>
+                        <h2 class="mb-0" style="color:#4682B4;">Cursos de nivel Primaria</h2>
                         <small class="text-secondary">Seleccione el curso que desea visualizar:</small>
+                    </div>
+
+                    <!-- Tarjetas de Resumen -->
+                    <div class="summary-cards">
+                        <div class="summary-card">
+                            <div class="number"><?php echo $total_cursos; ?></div>
+                            <div class="label">Total cursos</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="number"><?php echo $total_estudiantes; ?></div>
+                            <div class="label">Total estudiantes</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="gender-breakdown">
+                                <div class="gender-row">
+                                    <span>Hombres</span>
+                                    <span><?php echo $total_hombres; ?></span>
+                                </div>
+                                <div class="gender-row">
+                                    <span>Mujeres</span>
+                                    <span><?php echo $total_mujeres; ?></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Tabla de Cursos -->
@@ -191,15 +288,18 @@ $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <table class="table table-cursos table-bordered align-middle">
                             <thead>
                                 <tr>
-                                    <th style="width: 80px;">#</th>
+                                    <th style="width: 60px;">N°</th>
                                     <th>Curso</th>
-                                    <th>Centralizador</th>
+                                    <th style="width: 80px;">Total</th>
+                                    <th style="width: 80px;">Hombres</th>
+                                    <th style="width: 80px;">Mujeres</th>
+                                    <th style="width: 120px;">Centralizador</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php if (empty($cursos)): ?>
                                     <tr>
-                                        <td colspan="3">
+                                        <td colspan="6">
                                             <div class="alert alert-warning mb-0">
                                                 No hay cursos de primaria registrados.
                                             </div>
@@ -211,13 +311,12 @@ $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <tr>
                                             <td><?php echo $n++; ?></td>
                                             <td><?php echo htmlspecialchars("{$curso['curso']} {$curso['paralelo']}"); ?></td>
+                                            <td><?php echo $curso['total_estudiantes']; ?></td>
+                                            <td><?php echo $curso['hombres']; ?></td>
+                                            <td><?php echo $curso['mujeres']; ?></td>
                                             <td>
                                                 <a href="ver_curso.php?id=<?php echo $curso['id_curso']; ?>" class="btn btn-centralizador">
-                                                    Ver Centralizador
-                                                </a>
-                                                <a href="boletin_primaria.php?id_curso=<?= $curso['id_curso'] ?>"
-                                                    class="btn btn-success btn-action">
-                                                    <i class="ri-printer-line"></i> Boletín
+                                                    VER
                                                 </a>
                                             </td>
                                         </tr>

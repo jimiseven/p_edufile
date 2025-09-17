@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 04-09-2025 a las 12:35:39
+-- Tiempo de generación: 17-09-2025 a las 22:53:12
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de datos: `colegiov4`
+-- Base de datos: `colegiov2`
 --
 
 -- --------------------------------------------------------
@@ -120,138 +120,7 @@ CREATE TABLE `estudiantes` (
   `rude` varchar(20) NOT NULL COMMENT 'Registro Único de Estudiante',
   `carnet_identidad` varchar(20) DEFAULT NULL,
   `fecha_nacimiento` date DEFAULT NULL,
-  `pais` enum('Bolivia','Chile','Argentina') DEFAULT NULL,
-  `provincia_departamento` varchar(100) DEFAULT NULL,
-  `id_curso` int(11) DEFAULT NULL COMMENT 'FK al curso en el que está matriculado',
-  `id_responsable` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `estudiante_abandono`
---
-
-CREATE TABLE `estudiante_abandono` (
-  `id` int(11) NOT NULL,
-  `id_estudiante` int(11) NOT NULL,
-  `abandono` tinyint(1) DEFAULT 0,
-  `motivo` enum('trabajo','falta_dinero','otro') DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `estudiante_actividad_laboral`
---
-
-CREATE TABLE `estudiante_actividad_laboral` (
-  `id` int(11) NOT NULL,
-  `id_estudiante` int(11) NOT NULL,
-  `trabajo` tinyint(1) DEFAULT 0,
-  `meses_trabajo` set('enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre') DEFAULT NULL,
-  `actividad` varchar(100) DEFAULT NULL,
-  `turno_manana` tinyint(1) DEFAULT 0,
-  `turno_tarde` tinyint(1) DEFAULT 0,
-  `turno_noche` tinyint(1) DEFAULT 0,
-  `frecuencia` enum('todos_dias','dias_habiles','fin_de_semana','esporadico','dias_festivos','vacaciones') DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `estudiante_dificultades`
---
-
-CREATE TABLE `estudiante_dificultades` (
-  `id` int(11) NOT NULL,
-  `id_estudiante` int(11) NOT NULL,
-  `tiene_dificultad` tinyint(1) DEFAULT 0,
-  `auditiva` enum('ninguna','leve','grave','muy_grave','multiple') DEFAULT 'ninguna',
-  `visual` enum('ninguna','leve','grave','muy_grave','multiple') DEFAULT 'ninguna',
-  `intelectual` enum('ninguna','leve','grave','muy_grave','multiple') DEFAULT 'ninguna',
-  `fisico_motora` enum('ninguna','leve','grave','muy_grave','multiple') DEFAULT 'ninguna',
-  `psiquica_mental` enum('ninguna','leve','grave','muy_grave','multiple') DEFAULT 'ninguna',
-  `autista` enum('ninguna','leve','grave','muy_grave','multiple') DEFAULT 'ninguna'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `estudiante_direccion`
---
-
-CREATE TABLE `estudiante_direccion` (
-  `id` int(11) NOT NULL,
-  `id_estudiante` int(11) NOT NULL,
-  `departamento` varchar(50) DEFAULT NULL,
-  `provincia` varchar(50) DEFAULT NULL,
-  `municipio` varchar(50) DEFAULT NULL,
-  `localidad` varchar(100) DEFAULT NULL,
-  `comunidad` varchar(100) DEFAULT NULL,
-  `zona` varchar(100) DEFAULT NULL,
-  `numero_vivienda` varchar(20) DEFAULT NULL,
-  `telefono` varchar(20) DEFAULT NULL,
-  `celular` varchar(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `estudiante_idioma_cultura`
---
-
-CREATE TABLE `estudiante_idioma_cultura` (
-  `id` int(11) NOT NULL,
-  `id_estudiante` int(11) NOT NULL,
-  `idioma` varchar(50) DEFAULT NULL,
-  `cultura` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `estudiante_salud`
---
-
-CREATE TABLE `estudiante_salud` (
-  `id` int(11) NOT NULL,
-  `id_estudiante` int(11) NOT NULL,
-  `tiene_seguro` tinyint(1) NOT NULL DEFAULT 0,
-  `acceso_posta` tinyint(1) NOT NULL DEFAULT 0,
-  `acceso_centro_salud` tinyint(1) NOT NULL DEFAULT 0,
-  `acceso_hospital` tinyint(1) NOT NULL DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `estudiante_servicios`
---
-
-CREATE TABLE `estudiante_servicios` (
-  `id` int(11) NOT NULL,
-  `id_estudiante` int(11) NOT NULL,
-  `agua_caneria` tinyint(1) DEFAULT 0,
-  `bano` tinyint(1) DEFAULT 0,
-  `alcantarillado` tinyint(1) DEFAULT 0,
-  `internet` tinyint(1) DEFAULT 0,
-  `energia` tinyint(1) DEFAULT 0,
-  `recojo_basura` tinyint(1) DEFAULT 0,
-  `tipo_vivienda` enum('alquilada','propia','cedida','anticretico') DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `estudiante_transporte`
---
-
-CREATE TABLE `estudiante_transporte` (
-  `id` int(11) NOT NULL,
-  `id_estudiante` int(11) NOT NULL,
-  `medio` enum('a_pie','vehiculo','fluvial','otro') DEFAULT NULL,
-  `tiempo_llegada` enum('menos_media_hora','mas_media_hora') DEFAULT NULL
+  `id_curso` int(11) DEFAULT NULL COMMENT 'FK al curso en el que está matriculado'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -296,26 +165,6 @@ CREATE TABLE `profesores_materias_cursos` (
   `id_personal` int(11) NOT NULL COMMENT 'FK a personal (profesor)',
   `id_curso_materia` int(11) NOT NULL COMMENT 'FK a cursos_materias',
   `estado` enum('FALTA','CARGADO') NOT NULL DEFAULT 'FALTA'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `responsables`
---
-
-CREATE TABLE `responsables` (
-  `id_responsable` int(11) NOT NULL,
-  `nombres` varchar(255) NOT NULL,
-  `apellido_paterno` varchar(255) DEFAULT NULL,
-  `apellido_materno` varchar(255) DEFAULT NULL,
-  `carnet_identidad` varchar(20) DEFAULT NULL,
-  `fecha_nacimiento` date DEFAULT NULL,
-  `grado_instruccion` enum('Ninguno','Primaria','Secundaria','Técnico','Universitario','Postgrado') DEFAULT NULL,
-  `idioma_frecuente` varchar(100) DEFAULT NULL,
-  `parentesco` enum('Padre','Madre','Tutor','Otro') DEFAULT NULL,
-  `celular` varchar(20) DEFAULT NULL,
-  `creado_en` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -378,64 +227,7 @@ ALTER TABLE `cursos_materias`
 --
 ALTER TABLE `estudiantes`
   ADD PRIMARY KEY (`id_estudiante`),
-  ADD KEY `id_curso` (`id_curso`),
-  ADD KEY `idx_estudiantes_id_responsable` (`id_responsable`);
-
---
--- Indices de la tabla `estudiante_abandono`
---
-ALTER TABLE `estudiante_abandono`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unq_estudiante_abandono` (`id_estudiante`);
-
---
--- Indices de la tabla `estudiante_actividad_laboral`
---
-ALTER TABLE `estudiante_actividad_laboral`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unq_estudiante_trab` (`id_estudiante`);
-
---
--- Indices de la tabla `estudiante_dificultades`
---
-ALTER TABLE `estudiante_dificultades`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unq_estudiante_dif` (`id_estudiante`);
-
---
--- Indices de la tabla `estudiante_direccion`
---
-ALTER TABLE `estudiante_direccion`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unq_estudiante_dir` (`id_estudiante`);
-
---
--- Indices de la tabla `estudiante_idioma_cultura`
---
-ALTER TABLE `estudiante_idioma_cultura`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unq_estudiante_idioma` (`id_estudiante`);
-
---
--- Indices de la tabla `estudiante_salud`
---
-ALTER TABLE `estudiante_salud`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unq_estudiante_salud` (`id_estudiante`);
-
---
--- Indices de la tabla `estudiante_servicios`
---
-ALTER TABLE `estudiante_servicios`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unq_estudiante_serv` (`id_estudiante`);
-
---
--- Indices de la tabla `estudiante_transporte`
---
-ALTER TABLE `estudiante_transporte`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unq_estudiante_trans` (`id_estudiante`);
+  ADD KEY `id_curso` (`id_curso`);
 
 --
 -- Indices de la tabla `materias`
@@ -458,13 +250,6 @@ ALTER TABLE `profesores_materias_cursos`
   ADD PRIMARY KEY (`id_profesor_materia_curso`),
   ADD UNIQUE KEY `id_personal` (`id_personal`,`id_curso_materia`),
   ADD KEY `id_curso_materia` (`id_curso_materia`);
-
---
--- Indices de la tabla `responsables`
---
-ALTER TABLE `responsables`
-  ADD PRIMARY KEY (`id_responsable`),
-  ADD UNIQUE KEY `uk_responsables_ci` (`carnet_identidad`);
 
 --
 -- Indices de la tabla `roles`
@@ -519,54 +304,6 @@ ALTER TABLE `estudiantes`
   MODIFY `id_estudiante` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de la tabla `estudiante_abandono`
---
-ALTER TABLE `estudiante_abandono`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `estudiante_actividad_laboral`
---
-ALTER TABLE `estudiante_actividad_laboral`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `estudiante_dificultades`
---
-ALTER TABLE `estudiante_dificultades`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `estudiante_direccion`
---
-ALTER TABLE `estudiante_direccion`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `estudiante_idioma_cultura`
---
-ALTER TABLE `estudiante_idioma_cultura`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `estudiante_salud`
---
-ALTER TABLE `estudiante_salud`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `estudiante_servicios`
---
-ALTER TABLE `estudiante_servicios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `estudiante_transporte`
---
-ALTER TABLE `estudiante_transporte`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT de la tabla `materias`
 --
 ALTER TABLE `materias`
@@ -583,12 +320,6 @@ ALTER TABLE `personal`
 --
 ALTER TABLE `profesores_materias_cursos`
   MODIFY `id_profesor_materia_curso` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `responsables`
---
-ALTER TABLE `responsables`
-  MODIFY `id_responsable` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `roles`
@@ -618,56 +349,7 @@ ALTER TABLE `cursos_materias`
 -- Filtros para la tabla `estudiantes`
 --
 ALTER TABLE `estudiantes`
-  ADD CONSTRAINT `estudiantes_ibfk_1` FOREIGN KEY (`id_curso`) REFERENCES `cursos` (`id_curso`) ON DELETE SET NULL ON UPDATE CASCADE,
-  ADD CONSTRAINT `estudiantes_ibfk_responsable` FOREIGN KEY (`id_responsable`) REFERENCES `responsables` (`id_responsable`) ON DELETE SET NULL ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `estudiante_abandono`
---
-ALTER TABLE `estudiante_abandono`
-  ADD CONSTRAINT `fk_abandono_estudiante` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `estudiante_actividad_laboral`
---
-ALTER TABLE `estudiante_actividad_laboral`
-  ADD CONSTRAINT `fk_trabajo_estudiante` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `estudiante_dificultades`
---
-ALTER TABLE `estudiante_dificultades`
-  ADD CONSTRAINT `fk_dificultades_estudiante` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `estudiante_direccion`
---
-ALTER TABLE `estudiante_direccion`
-  ADD CONSTRAINT `fk_direccion_estudiante` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `estudiante_idioma_cultura`
---
-ALTER TABLE `estudiante_idioma_cultura`
-  ADD CONSTRAINT `fk_idioma_cultura_estudiante` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `estudiante_salud`
---
-ALTER TABLE `estudiante_salud`
-  ADD CONSTRAINT `fk_salud_estudiante` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `estudiante_servicios`
---
-ALTER TABLE `estudiante_servicios`
-  ADD CONSTRAINT `fk_servicios_estudiante` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `estudiante_transporte`
---
-ALTER TABLE `estudiante_transporte`
-  ADD CONSTRAINT `fk_transporte_estudiante` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `estudiantes_ibfk_1` FOREIGN KEY (`id_curso`) REFERENCES `cursos` (`id_curso`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `personal`
