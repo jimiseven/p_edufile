@@ -492,6 +492,7 @@ $total_mujeres = array_sum(array_column($cursos, 'mujeres'));
             }
         }
     </script>
+    <script src="../js/bootstrap.bundle.min.js"></script>
 
 
 </body>

@@ -108,18 +108,18 @@ $estudiantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .nav-tabs .nav-link {
             border: none;
             border-radius: 0;
-            color: #333333;
+            color: #333333 !important;
             font-weight: 600;
             padding: 12px 16px;
             margin-right: 2px;
         }
         .nav-tabs .nav-link:hover {
             border-color: transparent;
-            color: #000000;
+            color: #000000 !important;
             background-color: #f8f9fa;
         }
         .nav-tabs .nav-link.active {
-            color: #000000;
+            color: #000000 !important;
             background-color: #fff;
             border-color: #dee2e6 #dee2e6 #fff;
             border-bottom: 3px solid #007bff;

@@ -196,4 +196,5 @@ $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
     </script>
 </body>
+<script src="../js/bootstrap.bundle.min.js"></script>
 </html>

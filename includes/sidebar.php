@@ -330,7 +330,7 @@ function active($str, $current)
             <div class="sidebar-logout">
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link" href="../includes/logout.php">
+						<a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
                             <span data-feather="log-out"></span>
                             Cerrar Sesión
                         </a>
@@ -343,3 +343,37 @@ function active($str, $current)
         if (window.feather) feather.replace();
     </script>
 </nav>
+
+<!-- Modal de confirmación de cierre de sesión (fuera del nav para evitar stacking issues) -->
+<style>
+    /* Asegura que el modal y el backdrop estén por encima de cualquier layout */
+    .modal { z-index: 2000; }
+    .modal-backdrop { z-index: 1990; }
+    /* Evita que contenedores con overflow oculten el backdrop si este include se renderiza en layouts complejos */
+</style>
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:10px;">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logoutModalLabel">Cerrar sesión</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Realmente desea cerrar sesión?
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <a href="../includes/logout.php" class="btn btn-primary">Confirmar</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // Si el modal quedara dentro de algún contenedor con z-index/overflow, lo movemos al final de body
+    (function(){
+        var modal = document.getElementById('logoutModal');
+        if(modal && modal.parentElement !== document.body){
+            document.body.appendChild(modal);
+        }
+    })();
+</script>
