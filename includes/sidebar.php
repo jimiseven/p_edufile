@@ -281,6 +281,17 @@ function active($str, $current)
                     </li>
                 </ul>
 
+                <!-- Reportes -->
+                <div class="sidebar-section-title">REPORTES</div>
+                <ul class="nav flex-column sidebar-group-list">
+                    <li>
+                        <a class="nav-link <?php echo active('reportes', $current); ?>" href="../admin/reportes.php">
+                            <span data-feather="file-text"></span>
+                            Reportes
+                        </a>
+                    </li>
+                </ul>
+
             <?php elseif ($role == 2): // Profesor 
             ?>
                 <div class="sidebar-section-title">MIS CURSOS</div>
