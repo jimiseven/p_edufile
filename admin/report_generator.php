@@ -19,6 +19,11 @@ $conn = $db->connect();
 function construirConsultaSQL($filtros, $columnas, $tipo_base) {
     global $conn;
     
+    error_log("=== construirConsultaSQL INICIO ===");
+    error_log("Filtros recibidos: " . print_r($filtros, true));
+    error_log("Columnas: " . print_r($columnas, true));
+    error_log("Tipo Base: " . $tipo_base);
+    
     $sql = "SELECT ";
     $where = [];
     $params = [];
@@ -189,6 +194,9 @@ function construirConsultaSQL($filtros, $columnas, $tipo_base) {
     }
     
     $sql .= " ORDER BY e.apellido_paterno, e.apellido_materno, e.nombres";
+    
+    error_log("SQL generado: " . $sql);
+    error_log("Parámetros: " . print_r($params, true));
     
     return [
         'sql' => $sql,

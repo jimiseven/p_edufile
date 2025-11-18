@@ -46,43 +46,24 @@ $tipo_base = $reporte['tipo_base'];
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --bg-color: #f5f5f5;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-            --border-color: #dee2e6;
-            --header-bg: #343a40;
-            --header-text: #ffffff;
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #1a1a1a;
-            --card-bg: #2d2d2d;
-            --text-color: #e0e0e0;
-            --border-color: #404040;
-            --header-bg: #000000;
-            --header-text: #ffffff;
-        }
-
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: #f8f9fa;
+            color: #333333;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
-            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .report-header {
-            background-color: var(--header-bg);
-            color: var(--header-text);
+            background-color: #343a40;
+            color: #ffffff;
             padding: 20px;
             border-radius: 10px 10px 0 0;
             margin-bottom: 0;
         }
 
         .report-container {
-            background-color: var(--card-bg);
+            background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             overflow: hidden;
@@ -91,13 +72,13 @@ $tipo_base = $reporte['tipo_base'];
 
         .report-info {
             padding: 20px;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid #dee2e6;
         }
 
         .report-filters {
             padding: 20px;
             background-color: rgba(0, 0, 0, 0.02);
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid #dee2e6;
         }
 
         .table-responsive {
@@ -105,13 +86,13 @@ $tipo_base = $reporte['tipo_base'];
         }
 
         .table {
-            color: var(--text-color);
+            color: #333333;
         }
 
         .table thead th {
-            background-color: var(--header-bg);
-            color: var(--header-text);
-            border-bottom: 2px solid var(--border-color);
+            background-color: #343a40;
+            color: #ffffff;
+            border-bottom: 2px solid #dee2e6;
         }
 
         .table tbody tr:hover {
@@ -138,56 +119,6 @@ $tipo_base = $reporte['tipo_base'];
             color: #6c757d;
         }
 
-        .dark-mode-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-        }
-
-        .toggle-switch {
-            position: relative;
-            width: 60px;
-            height: 30px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: #2196F3;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(30px);
-        }
 
         .stats-summary {
             padding: 20px;
@@ -199,14 +130,6 @@ $tipo_base = $reporte['tipo_base'];
     </style>
 </head>
 <body>
-    <!-- Dark Mode Toggle -->
-    <div class="dark-mode-toggle">
-        <label class="toggle-switch">
-            <input type="checkbox" id="darkModeToggle">
-            <span class="slider"></span>
-        </label>
-    </div>
-
     <div class="container-fluid">
         <!-- Botón de vuelta -->
         <div class="back-button">
@@ -216,7 +139,7 @@ $tipo_base = $reporte['tipo_base'];
         </div>
 
         <!-- Contenedor del Reporte -->
-        <div class="report-container">
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 position-relative">
             <!-- Encabezado -->
             <div class="report-header">
                 <h2><i class="fas fa-file-alt me-2"></i><?php echo htmlspecialchars($reporte['nombre']); ?></h2>
@@ -289,25 +212,6 @@ $tipo_base = $reporte['tipo_base'];
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Dark mode toggle
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        const currentTheme = localStorage.getItem('theme') || 'light';
-        
-        if (currentTheme === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            darkModeToggle.checked = true;
-        }
-        
-        darkModeToggle.addEventListener('change', function() {
-            if (this.checked) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                document.documentElement.removeAttribute('data-theme');
-                localStorage.setItem('theme', 'light');
-            }
-        });
-
         // Auto-refresh cada 30 segundos para datos en tiempo real
         setInterval(function() {
             location.reload();
