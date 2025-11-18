@@ -23,6 +23,7 @@ function construirConsultaSQL($filtros, $columnas, $tipo_base) {
     error_log("Filtros recibidos: " . print_r($filtros, true));
     error_log("Columnas: " . print_r($columnas, true));
     error_log("Tipo Base: " . $tipo_base);
+    error_log("Columnas vacías? " . (empty($columnas) ? 'SÍ' : 'NO'));
     
     $sql = "SELECT ";
     $where = [];
@@ -195,8 +196,14 @@ function construirConsultaSQL($filtros, $columnas, $tipo_base) {
     
     $sql .= " ORDER BY e.apellido_paterno, e.apellido_materno, e.nombres";
     
-    error_log("SQL generado: " . $sql);
+    error_log("SQL FINAL generado: " . $sql);
     error_log("Parámetros: " . print_r($params, true));
+    error_log("Longitud del SQL: " . strlen($sql));
+    
+    // Verificación básica del SQL
+    if (strpos($sql, 'SELECT') === false || strpos($sql, 'FROM') === false) {
+        error_log("ERROR: SQL parece estar incompleto");
+    }
     
     return [
         'sql' => $sql,
@@ -207,7 +214,7 @@ function construirConsultaSQL($filtros, $columnas, $tipo_base) {
 /**
  * Guarda configuración del reporte en la base de datos
  */
-function guardarReporte($nombre, $tipo_base, $descripcion, $filtros, $columnas) {
+function guardarReporte($nombre, $tipo_base, $descripcion, $filtros, $columnas, $id_reporte_editar = 0) {
     global $conn;
     
     error_log("=== guardarReporte INICIO ===");
@@ -217,20 +224,41 @@ function guardarReporte($nombre, $tipo_base, $descripcion, $filtros, $columnas) 
     error_log("Filtros: " . print_r($filtros, true));
     error_log("Columnas: " . print_r($columnas, true));
     error_log("User ID: " . ($_SESSION['user_id'] ?? 'NO DEFINIDO'));
+    error_log("ID Reporte Editar: " . $id_reporte_editar);
     
     try {
         // Iniciar transacción
         $conn->beginTransaction();
         error_log("Transacción iniciada");
         
-        // Insertar en reportes_guardados
-        $stmt = $conn->prepare("
-            INSERT INTO reportes_guardados (nombre, tipo_base, id_personal) 
-            VALUES (?, ?, ?)
-        ");
-        $stmt->execute([$nombre, $tipo_base, $_SESSION['user_id']]);
-        $id_reporte = $conn->lastInsertId();
-        error_log("Reporte principal insertado, ID: " . $id_reporte);
+        if ($id_reporte_editar > 0) {
+            // Actualizar reporte existente
+            $stmt = $conn->prepare("
+                UPDATE reportes_guardados 
+                SET nombre = ?, tipo_base = ?, descripcion = ?, fecha_modificacion = NOW() 
+                WHERE id_reporte = ? AND id_personal = ?
+            ");
+            $stmt->execute([$nombre, $tipo_base, $descripcion, $id_reporte_editar, $_SESSION['user_id']]);
+            error_log("Reporte actualizado, ID: " . $id_reporte_editar);
+            
+            // Eliminar filtros y columnas existentes
+            $stmt = $conn->prepare("DELETE FROM reportes_guardados_filtros WHERE id_reporte = ?");
+            $stmt->execute([$id_reporte_editar]);
+            
+            $stmt = $conn->prepare("DELETE FROM reportes_guardados_columnas WHERE id_reporte = ?");
+            $stmt->execute([$id_reporte_editar]);
+            
+            $id_reporte = $id_reporte_editar;
+        } else {
+            // Insertar nuevo reporte
+            $stmt = $conn->prepare("
+                INSERT INTO reportes_guardados (nombre, tipo_base, descripcion, id_personal) 
+                VALUES (?, ?, ?, ?)
+            ");
+            $stmt->execute([$nombre, $tipo_base, $descripcion, $_SESSION['user_id']]);
+            $id_reporte = $conn->lastInsertId();
+            error_log("Reporte principal insertado, ID: " . $id_reporte);
+        }
         
         // Insertar filtros
         if (!empty($filtros)) {
@@ -339,6 +367,11 @@ function cargarReporteGuardado($id_reporte) {
         ");
         $stmt->execute([$id_reporte]);
         $filtros_db = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Depuración
+        error_log("=== DEPURACIÓN cargarReporteGuardado ===");
+        error_log("ID Reporte: " . $id_reporte);
+        error_log("Filtros desde BD: " . print_r($filtros_db, true));
         
         // Procesar filtros
         $filtros = [];

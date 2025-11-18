@@ -46,107 +46,254 @@ $tipo_base = $reporte['tipo_base'];
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
+        :root {
+            --content-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --sidebar-bg: #2c3e50;
+            --header-bg: #34495e;
+        }
+
         body {
             background-color: #f8f9fa;
             color: #333333;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+        }
+
+        .content-wrapper {
+            background: var(--content-bg);
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
         }
 
         .report-header {
-            background-color: #343a40;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
             color: #ffffff;
-            padding: 20px;
-            border-radius: 10px 10px 0 0;
+            padding: 2rem;
+            border-radius: 15px 15px 0 0;
             margin-bottom: 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         .report-container {
             background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             overflow: hidden;
-            margin-bottom: 20px;
+            margin-bottom: 2rem;
         }
 
         .report-info {
-            padding: 20px;
-            border-bottom: 1px solid #dee2e6;
+            padding: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            background: #f8f9fa;
         }
 
         .report-filters {
-            padding: 20px;
+            padding: 2rem;
             background-color: rgba(0, 0, 0, 0.02);
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .table-responsive {
-            padding: 20px;
+            padding: 2rem;
         }
 
         .table {
-            color: #333333;
+            color: var(--text-primary);
+            border-radius: 10px;
+            overflow: hidden;
         }
 
         .table thead th {
-            background-color: #343a40;
-            color: #ffffff;
-            border-bottom: 2px solid #dee2e6;
+            background-color: #2c3e50;
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 1rem;
         }
 
         .table tbody tr:hover {
-            background-color: rgba(0, 0, 0, 0.05);
+            background-color: #f8f9fa;
+        }
+
+        .btn-back {
+            background: #6c757d;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: #5a6268;
+            color: white;
+            transform: translateY(-2px);
         }
 
         .filter-tag {
             display: inline-block;
-            background-color: #007bff;
+            padding: 0.5rem 1rem;
+            background-color: #e9ecef;
+            border-radius: 20px;
+            margin: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .text-light-50 {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            margin: 2px;
-            font-size: 0.85em;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 0.9rem;
         }
 
-        .back-button {
-            margin-bottom: 20px;
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            color: white;
         }
 
-        .no-results {
-            text-align: center;
-            padding: 40px;
-            color: #6c757d;
+        @media (max-width: 768px) {
+            .content-wrapper {
+                padding: 1rem;
+                margin: 1rem;
+            }
+            
+            .report-header {
+                padding: 1rem;
+            }
+            
+            .table-responsive {
+                padding: 1rem;
+            }
         }
 
+        /* Sidebar fijo */
+        .container-fluid {
+            padding-left: 0;
+            padding-right: 0;
+        }
 
-        .stats-summary {
-            padding: 20px;
-            background-color: rgba(0, 123, 255, 0.1);
-            border-left: 4px solid #007bff;
-            margin: 20px;
-            border-radius: 4px;
+        .row.position-relative {
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        /* Asegurar que el sidebar quede fijo */
+        #sidebarMenu {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            height: 100vh !important;
+            z-index: 1000;
+            overflow-y: auto;
+            width: 16.666667% !important; /* col-md-2 */
+        }
+
+        /* Ajustar el contenido principal para que no se superponga con el sidebar */
+        main {
+            margin-left: 16.666667% !important;
+            width: calc(100% - 16.666667%) !important;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 991px) and (min-width: 768px) {
+            #sidebarMenu {
+                width: 25% !important; /* col-md-3 */
+            }
+            
+            main {
+                margin-left: 25% !important;
+                width: calc(100% - 25%) !important;
+            }
+        }
+
+        @media (max-width: 767px) {
+            #sidebarMenu {
+                position: fixed !important;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                width: 280px !important;
+            }
+            
+            #sidebarMenu.show {
+                transform: translateX(0);
+            }
+            
+            main {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container-fluid">
-        <!-- Botón de vuelta -->
-        <div class="back-button">
-            <a href="reportes.php" class="btn btn-outline-primary">
-                <i class="fas fa-arrow-left me-2"></i>Volver a Reportes
-            </a>
-        </div>
+        <div class="row position-relative">
+            <?php include '../includes/sidebar.php'; ?>
 
-        <!-- Contenedor del Reporte -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 position-relative">
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 position-relative">
+                
+                <div class="content-wrapper">
+                    <h1 class="page-title">
+                        <i class="fas fa-file-alt me-2"></i>
+                        Ver Reporte: <?php echo htmlspecialchars($reporte['nombre']); ?>
+                    </h1>
             <!-- Encabezado -->
             <div class="report-header">
-                <h2><i class="fas fa-file-alt me-2"></i><?php echo htmlspecialchars($reporte['nombre']); ?></h2>
-                <p class="mb-0">
-                    <i class="fas fa-user me-2"></i>Creado por: <?php echo htmlspecialchars($reporte['nombres'] . ' ' . $reporte['apellidos']); ?>
-                    <span class="ms-3"><i class="fas fa-calendar me-2"></i>Fecha: <?php echo date('d/m/Y H:i', strtotime($reporte['fecha_creacion'])); ?></span>
-                </p>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h2 class="mb-2"><i class="fas fa-file-alt me-2"></i><?php echo htmlspecialchars($reporte['nombre']); ?></h2>
+                        <?php if (!empty($reporte['descripcion'])): ?>
+                        <p class="mb-2 text-light-50">
+                            <i class="fas fa-info-circle me-2"></i><?php echo htmlspecialchars($reporte['descripcion']); ?>
+                        </p>
+                        <?php endif; ?>
+                        <p class="mb-0">
+                            <i class="fas fa-user me-2"></i>Creado por: <?php echo htmlspecialchars($reporte['nombres'] . ' ' . $reporte['apellidos']); ?>
+                            <span class="ms-3"><i class="fas fa-calendar me-2"></i>Fecha: <?php echo date('d/m/Y H:i', strtotime($reporte['fecha_creacion'])); ?></span>
+                        </p>
+                    </div>
+                    <div class="header-actions">
+                        <a href="constructor_reporte.php?editar=<?php echo $id_reporte; ?>" class="btn btn-edit">
+                            <i class="fas fa-edit me-2"></i>Editar Reporte
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <!-- Información del Reporte -->
@@ -207,6 +354,15 @@ $tipo_base = $reporte['tipo_base'];
             <div class="table-responsive">
                 <?php generarReporteHTML($filtros, $columnas, $tipo_base); ?>
             </div>
+
+            <!-- Botón de volver -->
+            <div class="mt-4">
+                <a href="reportes.php" class="btn-back">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a Reportes
+                </a>
+            </div>
+                </div>
+            </main>
         </div>
     </div>
 
