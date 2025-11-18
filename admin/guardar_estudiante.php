@@ -112,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtEstudiante->execute();
 
         // Guardar información secundaria (opcional)
-        $this->guardarInformacionSecundaria($conn, $id_estudiante, $_POST);
+        guardarInformacionSecundaria($conn, $id_estudiante, $_POST);
 
         // Confirmar transacción
         $conn->commit();
