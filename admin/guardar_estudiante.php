@@ -272,7 +272,7 @@ function guardarInformacionSecundaria($conn, $id_estudiante, $postData) {
 
     } catch (PDOException $e) {
         error_log("Error al guardar información secundaria: " . $e->getMessage());
-        // No lanzar excepción para no interrumpir el flujo principal
+        // No lanzar excepción para no interrumpir el flujo prindcipal
     }
 }
 ?>
