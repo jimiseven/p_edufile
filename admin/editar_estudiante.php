@@ -64,9 +64,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $resp_grado_instruccion = trim($_POST['resp_grado_instruccion']);
         $resp_idioma_frecuente = trim($_POST['resp_idioma_frecuente']);
 
-        // Validaciones básicas del responsable
-        if (empty($resp_nombres) || empty($resp_apellido_paterno) || empty($resp_ci) || empty($resp_parentesco)) {
-            $error = 'Por favor, complete todos los campos obligatorios del responsable.';
+        // Validaciones básicas - Solo RUDE es obligatorio
+        if (empty($rude)) {
+            $error = 'Por favor, complete el campo RUDE que es obligatorio.';
         } else {
             // Debug: Verificar datos antes del procesamiento
             error_log("Estudiante ID: " . $id_estudiante);
@@ -272,19 +272,19 @@ $cursos = $conn->query($sqlCursos)->fetchAll(PDO::FETCH_ASSOC);
                         <h5 class="text-primary mb-0">
                             <i class="bi bi-person-circle"></i> Paso 1: Información del Estudiante
                         </h5>
-                        <small class="text-muted">Complete los datos personales del estudiante</small>
+                        <small class="text-muted">Complete los datos del estudiante (solo RUDE es obligatorio)</small>
                     </div>
                     
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label for="nombres" class="form-label">Nombres*</label>
+                            <label for="nombres" class="form-label">Nombres</label>
                             <input type="text" class="form-control" id="nombres" name="nombres"
-                                   value="<?php echo htmlspecialchars($estudiante['nombres']); ?>" required>
+                                   value="<?php echo htmlspecialchars($estudiante['nombres']); ?>">
                         </div>
                         <div class="col-md-4">
-                            <label for="apellido_paterno" class="form-label">Ap. Paterno*</label>
+                            <label for="apellido_paterno" class="form-label">Ap. Paterno</label>
                             <input type="text" class="form-control" id="apellido_paterno" name="apellido_paterno"
-                                   value="<?php echo htmlspecialchars($estudiante['apellido_paterno']); ?>" required>
+                                   value="<?php echo htmlspecialchars($estudiante['apellido_paterno']); ?>">
                         </div>
                         <div class="col-md-4">
                             <label for="apellido_materno" class="form-label">Ap. Materno</label>
@@ -297,26 +297,26 @@ $cursos = $conn->query($sqlCursos)->fetchAll(PDO::FETCH_ASSOC);
                                    value="<?php echo htmlspecialchars($estudiante['rude']); ?>" required>
                         </div>
                         <div class="col-md-3">
-                            <label for="ci" class="form-label">CI*</label>
+                            <label for="ci" class="form-label">CI</label>
                             <input type="text" class="form-control" id="ci" name="ci"
-                                   value="<?php echo htmlspecialchars($estudiante['carnet_identidad']); ?>" required>
+                                   value="<?php echo htmlspecialchars($estudiante['carnet_identidad']); ?>">
                         </div>
                         <div class="col-md-3">
-                            <label for="fecha_nacimiento" class="form-label">F. Nacimiento*</label>
+                            <label for="fecha_nacimiento" class="form-label">F. Nacimiento</label>
                             <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento"
-                                   value="<?php echo $estudiante['fecha_nacimiento'] ?? ''; ?>" required>
+                                   value="<?php echo $estudiante['fecha_nacimiento'] ?? ''; ?>">
                         </div>
                         <div class="col-md-3">
-                            <label for="genero" class="form-label">Género*</label>
-                            <select class="form-select" id="genero" name="genero" required>
+                            <label for="genero" class="form-label">Género</label>
+                            <select class="form-select" id="genero" name="genero">
                                 <option value="">Seleccionar</option>
                                 <option value="Masculino" <?php echo $estudiante['genero'] === 'Masculino' ? 'selected' : ''; ?>>Masculino</option>
                                 <option value="Femenino" <?php echo $estudiante['genero'] === 'Femenino' ? 'selected' : ''; ?>>Femenino</option>
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="pais" class="form-label">País*</label>
-                            <select class="form-select" id="pais" name="pais" required>
+                            <label for="pais" class="form-label">País</label>
+                            <select class="form-select" id="pais" name="pais">
                                 <option value="">Seleccionar</option>
                                 <option value="Bolivia" <?php echo ($estudiante['pais'] ?? '') === 'Bolivia' ? 'selected' : ''; ?>>Bolivia</option>
                                 <option value="Chile" <?php echo ($estudiante['pais'] ?? '') === 'Chile' ? 'selected' : ''; ?>>Chile</option>
@@ -324,13 +324,13 @@ $cursos = $conn->query($sqlCursos)->fetchAll(PDO::FETCH_ASSOC);
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="provincia_departamento" class="form-label">Provincia/Departamento*</label>
+                            <label for="provincia_departamento" class="form-label">Provincia/Departamento</label>
                             <input type="text" class="form-control" id="provincia_departamento" name="provincia_departamento"
-                                   value="<?php echo htmlspecialchars($estudiante['provincia_departamento'] ?? ''); ?>" required>
+                                   value="<?php echo htmlspecialchars($estudiante['provincia_departamento'] ?? ''); ?>">
                         </div>
                         <div class="col-md-4">
-                            <label for="curso" class="form-label">Curso*</label>
-                            <select class="form-select" id="curso" name="curso" required>
+                            <label for="curso" class="form-label">Curso</label>
+                            <select class="form-select" id="curso" name="curso">
                                 <option value="">Seleccionar</option>
                                 <?php foreach ($cursos as $curso): ?>
                                 <option value="<?php echo $curso['id_curso']; ?>"
@@ -349,19 +349,19 @@ $cursos = $conn->query($sqlCursos)->fetchAll(PDO::FETCH_ASSOC);
                         <h5 class="text-success mb-0">
                             <i class="bi bi-person-badge"></i> Paso 2: Información del Responsable
                         </h5>
-                        <small class="text-muted">Complete los datos del responsable del estudiante</small>
+                        <small class="text-muted">Complete los datos del responsable (todos los campos son opcionales)</small>
                     </div>
                     
                     <div class="row g-3">
                     <div class="col-md-4">
-                        <label for="resp_nombres" class="form-label">Nombres del Responsable*</label>
+                        <label for="resp_nombres" class="form-label">Nombres del Responsable</label>
                         <input type="text" class="form-control" id="resp_nombres" name="resp_nombres"
-                               value="<?php echo htmlspecialchars($estudiante['resp_nombres'] ?? ''); ?>" required>
+                               value="<?php echo htmlspecialchars($estudiante['resp_nombres'] ?? ''); ?>">
                     </div>
                     <div class="col-md-4">
-                        <label for="resp_apellido_paterno" class="form-label">Ap. Paterno*</label>
+                        <label for="resp_apellido_paterno" class="form-label">Ap. Paterno</label>
                         <input type="text" class="form-control" id="resp_apellido_paterno" name="resp_apellido_paterno"
-                               value="<?php echo htmlspecialchars($estudiante['resp_apellido_paterno'] ?? ''); ?>" required>
+                               value="<?php echo htmlspecialchars($estudiante['resp_apellido_paterno'] ?? ''); ?>">
                     </div>
                     <div class="col-md-4">
                         <label for="resp_apellido_materno" class="form-label">Ap. Materno</label>
@@ -372,9 +372,9 @@ $cursos = $conn->query($sqlCursos)->fetchAll(PDO::FETCH_ASSOC);
                 
                 <div class="row g-3 mb-3">
                     <div class="col-md-3">
-                        <label for="resp_ci" class="form-label">CI del Responsable*</label>
+                        <label for="resp_ci" class="form-label">CI del Responsable</label>
                         <input type="text" class="form-control" id="resp_ci" name="resp_ci"
-                               value="<?php echo htmlspecialchars($estudiante['resp_ci'] ?? ''); ?>" required>
+                               value="<?php echo htmlspecialchars($estudiante['resp_ci'] ?? ''); ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="resp_fecha_nacimiento" class="form-label">F. Nacimiento</label>
@@ -382,8 +382,8 @@ $cursos = $conn->query($sqlCursos)->fetchAll(PDO::FETCH_ASSOC);
                                value="<?php echo $estudiante['resp_fecha_nacimiento'] ?? ''; ?>">
                     </div>
                     <div class="col-md-3">
-                        <label for="resp_parentesco" class="form-label">Parentesco*</label>
-                        <select class="form-select" id="resp_parentesco" name="resp_parentesco" required>
+                        <label for="resp_parentesco" class="form-label">Parentesco</label>
+                        <select class="form-select" id="resp_parentesco" name="resp_parentesco">
                             <option value="">Seleccionar</option>
                             <option value="Padre" <?php echo ($estudiante['parentesco'] ?? '') === 'Padre' ? 'selected' : ''; ?>>Padre</option>
                             <option value="Madre" <?php echo ($estudiante['parentesco'] ?? '') === 'Madre' ? 'selected' : ''; ?>>Madre</option>

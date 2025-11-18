@@ -30,27 +30,11 @@ try {
     $columnas_orden = isset($_POST['columnas_orden']) ? $_POST['columnas_orden'] : [];
     
     // Construir consulta SQL
-    $sql = construirConsulta($tipo_base, $filtros, $columnas);
-    $stmt = $conn->prepare($sql);
+    $consulta = construirConsultaSQL($filtros, $columnas, $tipo_base);
+    $stmt = $conn->prepare($consulta['sql']);
     
     // Ejecutar consulta con parámetros
-    $params = [];
-    $paramIndex = 1;
-    
-    foreach ($filtros as $campo => $valor) {
-        if (is_array($valor)) {
-            // Para filtros de tipo 'in'
-            $placeholders = str_repeat('?,', count($valor) - 1) . '?';
-            $sql = str_replace(":$campo", "($placeholders)", $sql);
-            foreach ($valor as $val) {
-                $params[] = $val;
-            }
-        } else {
-            $params[] = $valor;
-        }
-    }
-    
-    $stmt->execute($params);
+    $stmt->execute($consulta['params']);
     $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     // Verificar si se obtuvieron resultados

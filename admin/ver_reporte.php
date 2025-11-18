@@ -193,6 +193,7 @@ $tipo_base = $reporte['tipo_base'];
         .header-actions {
             display: flex;
             gap: 0.5rem;
+            flex-wrap: wrap;
         }
 
         .btn-edit {

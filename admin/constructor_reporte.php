@@ -618,7 +618,7 @@ function generarOpcionesSelect($array, $valor_key, $texto_key, $seleccionados = 
             border: none;
             position: sticky;
             top: 0;
-            z-index: 10;
+            z-index: 900; /* Reducido para que esté debajo del sidebar */
         }
 
         .table td {
@@ -646,6 +646,56 @@ function generarOpcionesSelect($array, $valor_key, $texto_key, $seleccionados = 
             
             .btn-order {
                 padding: 0.25rem;
+            }
+        }
+
+        /* Sidebar fijo - que no se mueva */
+        .sidebar {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 1050 !important; /* z-index alto para estar siempre encima */
+            overflow-y: auto;
+        }
+
+        /* Asegurar que ningún elemento se sobreponga al sidebar */
+        .position-sticky, .sticky-top {
+            z-index: 900 !important;
+        }
+
+        .position-fixed, .fixed-top {
+            z-index: 1001 !important; /* Por debajo del sidebar */
+        }
+
+        /* Ajustar el contenido principal para que no quede detrás del sidebar */
+        @media (min-width: 992px) {
+            /* Para pantallas lg y mayores - sidebar col-lg-2 = 16.67% */
+            main.col-md-9.ms-sm-auto.col-lg-10 {
+                margin-left: 16.67% !important;
+                width: calc(100% - 16.67%) !important;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            /* Para pantallas md - sidebar col-md-3 = 25% */
+            main.col-md-9.ms-sm-auto.col-lg-10 {
+                margin-left: 25% !important;
+                width: calc(100% - 25%) !important;
+            }
+        }
+
+        /* Para móviles, ajustar el sidebar */
+        @media (max-width: 767.98px) {
+            .sidebar {
+                position: relative !important;
+                height: auto;
+                width: 100% !important;
+            }
+            
+            main.col-md-9.ms-sm-auto.col-lg-10 {
+                margin-left: 0 !important;
+                width: 100% !important;
             }
         }
     </style>
@@ -1021,7 +1071,8 @@ function generarOpcionesSelect($array, $valor_key, $texto_key, $seleccionados = 
                                 </div>
                                 <div class="save-buttons-container">
                                     <button type="submit" name="accion" value="guardar" class="btn-action btn-save">
-                                        <i class="fas fa-save me-2"></i> Guardar Reporte
+                                        <i class="fas fa-save me-2"></i> 
+                                        <?php echo $editando ? 'Actualizar Reporte' : 'Guardar Reporte'; ?>
                                     </button>
                                     <button type="button" class="btn-action btn-clear" onclick="limpiarFormulario()">
                                         <i class="fas fa-eraser me-2"></i> Limpiar Filtros
@@ -1038,7 +1089,8 @@ function generarOpcionesSelect($array, $valor_key, $texto_key, $seleccionados = 
                             <!-- Botones iniciales -->
                             <div class="action-buttons">
                                 <button type="submit" name="accion" value="generar" class="btn-action btn-generate">
-                                    <i class="fas fa-play"></i> Generar Reporte
+                                    <i class="fas fa-<?php echo $editando ? 'save' : 'play'; ?>"></i> 
+                                    <?php echo $editando ? 'Guardar Cambios' : 'Generar Reporte'; ?>
                                 </button>
                                 <button type="button" class="btn-action btn-clear" onclick="limpiarFormulario()">
                                     <i class="fas fa-eraser"></i> Limpiar Filtros

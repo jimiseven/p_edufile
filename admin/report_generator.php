@@ -242,7 +242,7 @@ function guardarReporte($nombre, $tipo_base, $descripcion, $filtros, $columnas, 
             // Actualizar reporte existente
             $stmt = $conn->prepare("
                 UPDATE reportes_guardados 
-                SET nombre = ?, tipo_base = ?, fecha_modificacion = NOW() 
+                SET nombre = ?, tipo_base = ? 
                 WHERE id_reporte = ? AND id_personal = ?
             ");
             $stmt->execute([$nombre, $tipo_base, $id_reporte_editar, $_SESSION['user_id']]);
