@@ -138,143 +138,135 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 function guardarInformacionSecundaria($conn, $id_estudiante, $postData) {
     try {
         // Dirección
-        if (!empty($postData['dir_direccion']) || !empty($postData['dir_zona'])) {
-            $sql = "INSERT INTO estudiante_direccion (id_estudiante, direccion, zona, telefono_casa, celular, email, referencia) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+        if (!empty($postData['dir_departamento']) || !empty($postData['dir_zona']) || !empty($postData['dir_telefono'])) {
+            $sql = "INSERT INTO estudiante_direccion (id_estudiante, departamento, provincia, municipio, localidad, comunidad, zona, numero_vivienda, telefono_casa, celular) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
             $stmt->execute([
                 $id_estudiante,
-                $postData['dir_direccion'] ?? null,
+                $postData['dir_departamento'] ?? null,
+                $postData['dir_provincia'] ?? null,
+                $postData['dir_municipio'] ?? null,
+                $postData['dir_localidad'] ?? null,
+                $postData['dir_comunidad'] ?? null,
                 $postData['dir_zona'] ?? null,
+                $postData['dir_numero_vivienda'] ?? null,
                 $postData['dir_telefono'] ?? null,
-                $postData['dir_celular'] ?? null,
-                $postData['dir_email'] ?? null,
-                $postData['dir_referencia'] ?? null
+                $postData['dir_celular'] ?? null
             ]);
         }
 
         // Salud
-        if (!empty($postData['sal_tipo_sangre']) || !empty($postData['sal_discapacidad']) || 
-            !empty($postData['sal_alergias']) || !empty($postData['sal_medicamentos'])) {
-            $sql = "INSERT INTO estudiante_salud (id_estudiante, tipo_sangre, alergias, medicamentos, enfermedades_cronicas, 
-                    discapacidad, tipo_discapacidad, observaciones_medicas) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        if (!empty($postData['sal_tiene_seguro']) || !empty($postData['sal_acceso_posta']) || 
+            !empty($postData['sal_acceso_centro_salud']) || !empty($postData['sal_acceso_hospital'])) {
+            $sql = "INSERT INTO estudiante_salud (id_estudiante, tiene_seguro, acceso_posta, acceso_centro_salud, acceso_hospital) 
+                    VALUES (?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
             $stmt->execute([
                 $id_estudiante,
-                $postData['sal_tipo_sangre'] ?? null,
-                $postData['sal_alergias'] ?? null,
-                $postData['sal_medicamentos'] ?? null,
-                $postData['sal_enfermedades'] ?? null,
-                $postData['sal_discapacidad'] ?? 'No',
-                $postData['sal_tipo_discapacidad'] ?? null,
-                $postData['sal_observaciones'] ?? null
+                $postData['sal_tiene_seguro'] ?? null,
+                $postData['sal_acceso_posta'] ?? null,
+                $postData['sal_acceso_centro_salud'] ?? null,
+                $postData['sal_acceso_hospital'] ?? null
             ]);
         }
 
         // Idioma/Cultura
-        if (!empty($postData['idi_idioma_materno']) || !empty($postData['idi_nivel_espanol']) || 
-            !empty($postData['idi_idiomas_adicionales'])) {
-            $sql = "INSERT INTO estudiante_idioma_cultura (id_estudiante, idioma_materno, idiomas_adicionales, 
-                    nivel_espanol, pueblo_indigena, tradiciones, observaciones) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+        if (!empty($postData['idi_idioma']) || !empty($postData['idi_cultura'])) {
+            $sql = "INSERT INTO estudiante_idioma_cultura (id_estudiante, idioma, cultura) 
+                    VALUES (?, ?, ?)";
             $stmt = $conn->prepare($sql);
             $stmt->execute([
                 $id_estudiante,
-                $postData['idi_idioma_materno'] ?? null,
-                $postData['idi_idiomas_adicionales'] ?? null,
-                $postData['idi_nivel_espanol'] ?? null,
-                $postData['idi_pueblo_indigena'] ?? null,
-                $postData['idi_tradiciones'] ?? null,
-                $postData['idi_observaciones'] ?? null
+                $postData['idi_idioma'] ?? null,
+                $postData['idi_cultura'] ?? null
             ]);
         }
 
         // Transporte
-        if (!empty($postData['trans_tipo'])) {
-            $sql = "INSERT INTO estudiante_transporte (id_estudiante, tipo_transporte, tiempo_viaje, distancia, costo_mensual, observaciones) 
-                    VALUES (?, ?, ?, ?, ?, ?)";
+        if (!empty($postData['trans_medio']) || !empty($postData['trans_tiempo_llegada'])) {
+            $sql = "INSERT INTO estudiante_transporte (id_estudiante, medio, tiempo_llegada) 
+                    VALUES (?, ?, ?)";
             $stmt = $conn->prepare($sql);
             $stmt->execute([
                 $id_estudiante,
-                $postData['trans_tipo'],
-                $postData['trans_tiempo'] ?? null,
-                $postData['trans_distancia'] ?? null,
-                $postData['trans_costo'] ?? null,
-                $postData['trans_observaciones'] ?? null
+                $postData['trans_medio'] ?? null,
+                $postData['trans_tiempo_llegada'] ?? null
             ]);
         }
 
         // Servicios
         $servicios = [
-            'comedor' => $postData['serv_comedor'] ?? 'No',
-            'transporte_escolar' => $postData['serv_transporte'] ?? 'No',
-            'biblioteca' => $postData['serv_biblioteca'] ?? 'No',
-            'laboratorio' => $postData['serv_laboratorio'] ?? 'No',
-            'deportes' => $postData['serv_deportes'] ?? 'No',
-            'arte_cultura' => $postData['serv_arte'] ?? 'No'
+            'agua_caneria' => $postData['serv_agua_caneria'] ?? 'No',
+            'bano' => $postData['serv_bano'] ?? 'No',
+            'alcantarillado' => $postData['serv_alcantarillado'] ?? 'No',
+            'internet' => $postData['serv_internet'] ?? 'No',
+            'energia' => $postData['serv_energia'] ?? 'No',
+            'recojo_basura' => $postData['serv_recojo_basura'] ?? 'No',
+            'tipo_vivienda' => $postData['serv_tipo_vivienda'] ?? null
         ];
         
-        $sql = "INSERT INTO estudiante_servicios (id_estudiante, comedor, transporte_escolar, biblioteca, 
-                laboratorio, deportes, arte_cultura, observaciones) 
+        $sql = "INSERT INTO estudiante_servicios (id_estudiante, agua_caneria, bano, alcantarillado, 
+                internet, energia, recojo_basura, tipo_vivienda) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
         $stmt->execute([
             $id_estudiante,
-            $servicios['comedor'],
-            $servicios['transporte_escolar'],
-            $servicios['biblioteca'],
-            $servicios['laboratorio'],
-            $servicios['deportes'],
-            $servicios['arte_cultura'],
-            $postData['serv_observaciones'] ?? null
+            $servicios['agua_caneria'],
+            $servicios['bano'],
+            $servicios['alcantarillado'],
+            $servicios['internet'],
+            $servicios['energia'],
+            $servicios['recojo_basura'],
+            $servicios['tipo_vivienda']
         ]);
 
         // Actividad Laboral
-        if (!empty($postData['lab_trabaja']) && $postData['lab_trabaja'] === 'Si') {
-            $sql = "INSERT INTO estudiante_actividad_laboral (id_estudiante, trabaja, lugar_trabajo, cargo, 
-                    horario_trabajo, ingreso_mensual, observaciones) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+        if (!empty($postData['lab_trabajo']) && $postData['lab_trabajo'] === 'Si') {
+            $meses_trabajo = isset($postData['lab_meses_trabajo']) ? implode(',', $postData['lab_meses_trabajo']) : '';
+            $sql = "INSERT INTO estudiante_actividad_laboral (id_estudiante, trabajo, meses_trabajo, actividad, 
+                    turno_manana, turno_tarde, turno_noche, frecuencia) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
             $stmt->execute([
                 $id_estudiante,
-                $postData['lab_trabaja'],
-                $postData['lab_lugar'] ?? null,
-                $postData['lab_cargo'] ?? null,
-                $postData['lab_horario'] ?? null,
-                $postData['lab_ingreso'] ?? null,
-                $postData['lab_observaciones'] ?? null
+                $postData['lab_trabajo'],
+                $meses_trabajo,
+                $postData['lab_actividad'] ?? null,
+                $postData['lab_turno_manana'] ?? 'No',
+                $postData['lab_turno_tarde'] ?? 'No',
+                $postData['lab_turno_noche'] ?? 'No',
+                $postData['lab_frecuencia'] ?? null
             ]);
         }
 
         // Dificultades
-        if (!empty($postData['dif_tipo']) || !empty($postData['dif_descripcion'])) {
-            $sql = "INSERT INTO estudiante_dificultades (id_estudiante, tipo_dificultad, descripcion, 
-                    diagnostico, tratamiento, observaciones) 
-                    VALUES (?, ?, ?, ?, ?, ?)";
+        if (!empty($postData['dif_tiene_dificultad']) && $postData['dif_tiene_dificultad'] === '1') {
+            $sql = "INSERT INTO estudiante_dificultades (id_estudiante, tiene_dificultad, auditiva, visual, 
+                    intelectual, fisico_motora, psiquica_mental, autista) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
             $stmt->execute([
                 $id_estudiante,
-                $postData['dif_tipo'] ?? null,
-                $postData['dif_descripcion'] ?? null,
-                $postData['dif_diagnostico'] ?? null,
-                $postData['dif_tratamiento'] ?? null,
-                $postData['dif_observaciones'] ?? null
+                $postData['dif_tiene_dificultad'],
+                $postData['dif_auditiva'] ?? 'ninguna',
+                $postData['dif_visual'] ?? 'ninguna',
+                $postData['dif_intelectual'] ?? 'ninguna',
+                $postData['dif_fisico_motora'] ?? 'ninguna',
+                $postData['dif_psiquica_mental'] ?? 'ninguna',
+                $postData['dif_autista'] ?? 'ninguna'
             ]);
         }
 
         // Abandono
-        if (!empty($postData['aba_fecha']) || !empty($postData['aba_motivo'])) {
-            $sql = "INSERT INTO estudiante_abandono (id_estudiante, fecha_abandono, motivo_abandono, 
-                    observaciones, fecha_regreso) 
-                    VALUES (?, ?, ?, ?, ?)";
+        if (!empty($postData['aba_abandono']) && $postData['aba_abandono'] === 'Si') {
+            $sql = "INSERT INTO estudiante_abandono (id_estudiante, abandono, motivo) 
+                    VALUES (?, ?, ?)";
             $stmt = $conn->prepare($sql);
             $stmt->execute([
                 $id_estudiante,
-                $postData['aba_fecha'] ?? null,
-                $postData['aba_motivo'] ?? null,
-                $postData['aba_observaciones'] ?? null,
-                $postData['aba_fecha_regreso'] ?? null
+                $postData['aba_abandono'],
+                $postData['aba_motivo'] ?? null
             ]);
         }
 

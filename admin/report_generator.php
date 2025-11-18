@@ -29,6 +29,7 @@ function construirConsultaSQL($filtros, $columnas, $tipo_base) {
     $where = [];
     $params = [];
     $join_cursos = false;
+    $join_dificultades = false;
     
     if ($tipo_base == 'info_estudiantil') {
         // Columnas base para información estudiantil
@@ -84,6 +85,26 @@ function construirConsultaSQL($filtros, $columnas, $tipo_base) {
                     case 'nombre_completo':
                         $select_columns[] = "CONCAT(e.nombres, ' ', e.apellido_paterno, ' ', e.apellido_materno) as nombre_completo";
                         break;
+                    case 'tipo_dificultad':
+                        $select_columns[] = "CONCAT(
+                            CASE WHEN ed.auditiva != 'ninguna' THEN CONCAT('auditiva:', ed.auditiva) ELSE '' END,
+                            CASE WHEN ed.visual != 'ninguna' AND ed.auditiva != 'ninguna' THEN CONCAT(', visual:', ed.visual) 
+                                 WHEN ed.visual != 'ninguna' AND ed.auditiva = 'ninguna' THEN CONCAT('visual:', ed.visual) ELSE '' END,
+                            CASE WHEN ed.intelectual != 'ninguna' AND (ed.auditiva != 'ninguna' OR ed.visual != 'ninguna') THEN CONCAT(', intelectual:', ed.intelectual)
+                                 WHEN ed.intelectual != 'ninguna' AND ed.auditiva = 'ninguna' AND ed.visual = 'ninguna' THEN CONCAT('intelectual:', ed.intelectual) ELSE '' END,
+                            CASE WHEN ed.fisico_motora != 'ninguna' AND (ed.auditiva != 'ninguna' OR ed.visual != 'ninguna' OR ed.intelectual != 'ninguna') THEN CONCAT(', fisico_motora:', ed.fisico_motora)
+                                 WHEN ed.fisico_motora != 'ninguna' AND ed.auditiva = 'ninguna' AND ed.visual = 'ninguna' AND ed.intelectual = 'ninguna' THEN CONCAT('fisico_motora:', ed.fisico_motora) ELSE '' END,
+                            CASE WHEN ed.psiquica_mental != 'ninguna' AND (ed.auditiva != 'ninguna' OR ed.visual != 'ninguna' OR ed.intelectual != 'ninguna' OR ed.fisico_motora != 'ninguna') THEN CONCAT(', psiquica_mental:', ed.psiquica_mental)
+                                 WHEN ed.psiquica_mental != 'ninguna' AND ed.auditiva = 'ninguna' AND ed.visual = 'ninguna' AND ed.intelectual = 'ninguna' AND ed.fisico_motora = 'ninguna' THEN CONCAT('psiquica_mental:', ed.psiquica_mental) ELSE '' END,
+                            CASE WHEN ed.autista != 'ninguna' AND (ed.auditiva != 'ninguna' OR ed.visual != 'ninguna' OR ed.intelectual != 'ninguna' OR ed.fisico_motora != 'ninguna' OR ed.psiquica_mental != 'ninguna') THEN CONCAT(', autista:', ed.autista)
+                                 WHEN ed.autista != 'ninguna' AND ed.auditiva = 'ninguna' AND ed.visual = 'ninguna' AND ed.intelectual = 'ninguna' AND ed.fisico_motora = 'ninguna' AND ed.psiquica_mental = 'ninguna' THEN CONCAT('autista:', ed.autista) ELSE '' END
+                        ) as tipo_dificultad";
+                        $join_dificultades = true;
+                        break;
+                    case 'tiene_dificultad':
+                        $select_columns[] = "ed.tiene_dificultad";
+                        $join_dificultades = true;
+                        break;
                     default:
                         $select_columns[] = "e.$columna";
                 }
@@ -98,6 +119,11 @@ function construirConsultaSQL($filtros, $columnas, $tipo_base) {
         // Agregar JOIN con cursos si se necesitan columnas de cursos O si hay filtros de cursos
         if ($join_cursos || (!empty($filtros) && (isset($filtros['nivel']) || isset($filtros['curso']) || isset($filtros['paralelo'])))) {
             $sql .= " LEFT JOIN cursos c ON e.id_curso = c.id_curso";
+        }
+        
+        // Agregar JOIN con estudiante_dificultades si se necesitan columnas de dificultades O si hay filtros de dificultades
+        if ($join_dificultades || (!empty($filtros) && isset($filtros['tiene_dificultad']))) {
+            $sql .= " LEFT JOIN estudiante_dificultades ed ON e.id_estudiante = ed.id_estudiante";
         }
         
         // Construir WHERE basado en filtros
@@ -175,6 +201,21 @@ function construirConsultaSQL($filtros, $columnas, $tipo_base) {
                             $where[] = "(e.rude IS NULL OR e.rude = '')";
                         }
                         break;
+                        
+                    case 'tiene_dificultad':
+                        if (!empty($valor)) {
+                            if ($valor == '1') {
+                                $where[] = "ed.tiene_dificultad = '1'";
+                            } elseif ($valor == '0') {
+                                $where[] = "(ed.tiene_dificultad = '0' OR ed.tiene_dificultad IS NULL)";
+                            }
+                        }
+                        break;
+                    default:
+                        if (!empty($valor)) {
+                            $where[] = "e.$campo = ?";
+                            $params[] = $valor;
+                        }
                 }
             }
         }
@@ -185,8 +226,67 @@ function construirConsultaSQL($filtros, $columnas, $tipo_base) {
         $sql .= " FROM estudiantes e LEFT JOIN cursos c ON e.id_curso = c.id_curso";
         $join_cursos = true;
         
-        // Aquí se pueden agregar filtros específicos para información académica
-        // como notas, trimestres, etc.
+        // Agregar JOIN con estudiante_dificultades si hay filtros de dificultades
+        if (!empty($filtros) && isset($filtros['tiene_dificultad'])) {
+            $sql .= " LEFT JOIN estudiante_dificultades ed ON e.id_estudiante = ed.id_estudiante";
+        }
+        
+        // Construir WHERE basado en filtros
+        if (!empty($filtros)) {
+            foreach ($filtros as $campo => $valor) {
+                if (empty($valor)) {
+                    continue;
+                }
+                
+                switch($campo) {
+                    case 'nivel':
+                        if (is_array($valor) && !empty($valor)) {
+                            $placeholders = str_repeat('?,', count($valor) - 1) . '?';
+                            $where[] = "c.nivel IN ($placeholders)";
+                            $params = array_merge($params, $valor);
+                        }
+                        break;
+                        
+                    case 'curso':
+                        if (is_array($valor) && !empty($valor)) {
+                            $placeholders = str_repeat('?,', count($valor) - 1) . '?';
+                            $where[] = "c.curso IN ($placeholders)";
+                            $params = array_merge($params, $valor);
+                        }
+                        break;
+                        
+                    case 'paralelo':
+                        if (is_array($valor) && !empty($valor)) {
+                            $placeholders = str_repeat('?,', count($valor) - 1) . '?';
+                            $where[] = "c.paralelo IN ($placeholders)";
+                            $params = array_merge($params, $valor);
+                        }
+                        break;
+                        
+                    case 'genero':
+                        if (!empty($valor)) {
+                            $where[] = "e.genero = ?";
+                            $params[] = $valor;
+                        }
+                        break;
+                        
+                    case 'tiene_dificultad':
+                        if (!empty($valor)) {
+                            if ($valor == '1') {
+                                $where[] = "ed.tiene_dificultad = '1'";
+                            } elseif ($valor == '0') {
+                                $where[] = "(ed.tiene_dificultad = '0' OR ed.tiene_dificultad IS NULL)";
+                            }
+                        }
+                        break;
+                    default:
+                        if (!empty($valor)) {
+                            $where[] = "e.$campo = ?";
+                            $params[] = $valor;
+                        }
+                }
+            }
+        }
     }
     
     // Agregar cláusula WHERE si hay filtros
@@ -317,7 +417,8 @@ function guardarReporte($nombre, $tipo_base, $descripcion, $filtros, $columnas, 
                 'nivel' => 'Nivel',
                 'curso' => 'Curso',
                 'paralelo' => 'Paralelo',
-                'nombre_completo' => 'Nombre Completo'
+                'nombre_completo' => 'Nombre Completo',
+                'tipo_dificultad' => 'Tipo de Dificultad'
             ];
             
             // Usar el orden definido por el usuario si está disponible
@@ -548,8 +649,13 @@ function generarReporteHTML($filtros, $columnas, $tipo_base) {
             'nivel' => 'Nivel',
             'curso' => 'Curso',
             'paralelo' => 'Paralelo',
-            'nombre_completo' => 'Nombre Completo'
+            'nombre_completo' => 'Nombre Completo',
+            'tipo_dificultad' => 'Tipo de Dificultad'
         ];
+        
+        $select_columns = [];
+        $join_cursos = false;
+        $join_dificultades = false;
         
         if (!empty($columnas)) {
             foreach ($columnas as $columna) {

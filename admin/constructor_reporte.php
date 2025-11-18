@@ -760,6 +760,13 @@ function generarOpcionesSelect($array, $valor_key, $texto_key, $seleccionados = 
                                         case 'con_rude': $campo_nombre = 'Con RUDE'; break;
                                         case 'carnet_identidad': $campo_nombre = 'Carnet de Identidad'; break;
                                         case 'certificado_nacimiento': $campo_nombre = 'Certificado de Nacimiento'; break;
+                                        case 'tiene_dificultad': $campo_nombre = 'Tiene Dificultad'; break;
+                                        case 'dificultad_auditiva': $campo_nombre = 'Dificultad Auditiva'; break;
+                                        case 'dificultad_visual': $campo_nombre = 'Dificultad Visual'; break;
+                                        case 'dificultad_intelectual': $campo_nombre = 'Dificultad Intelectual'; break;
+                                        case 'dificultad_fisico_motora': $campo_nombre = 'Dificultad Físico-Motora'; break;
+                                        case 'dificultad_psiquica_mental': $campo_nombre = 'Dificultad Psíquica-Mental'; break;
+                                        case 'dificultad_autista': $campo_nombre = 'Dificultad Autista'; break;
                                         default: $campo_nombre = ucfirst($campo); break;
                                     }
                                     
@@ -889,6 +896,21 @@ function generarOpcionesSelect($array, $valor_key, $texto_key, $seleccionados = 
                                 </div>
                             </div>
 
+                            <!-- Filtros de Dificultades -->
+                            <div class="filter-section">
+                                <h5><i class="fas fa-user-injured"></i> Filtro de Dificultad</h5>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Tiene Dificultad</label>
+                                        <select class="form-select" name="filtros[tiene_dificultad]">
+                                            <option value="" <?php echo (isset($filtros['tiene_dificultad']) && $filtros['tiene_dificultad'] == '') ? 'selected' : ''; ?>>Todos</option>
+                                            <option value="1" <?php echo (isset($filtros['tiene_dificultad']) && $filtros['tiene_dificultad'] == '1') ? 'selected' : ''; ?>>Sí</option>
+                                            <option value="0" <?php echo (isset($filtros['tiene_dificultad']) && $filtros['tiene_dificultad'] == '0') ? 'selected' : ''; ?>>No</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Filtros de Documentación -->
                             <div class="filter-section">
                                 <h5><i class="fas fa-file-alt"></i> Filtros de Documentación</h5>
@@ -1002,7 +1024,8 @@ function generarOpcionesSelect($array, $valor_key, $texto_key, $seleccionados = 
                                             'nivel' => 'Nivel',
                                             'curso' => 'Curso',
                                             'paralelo' => 'Paralelo',
-                                            'nombre_completo' => 'Nombre Completo'
+                                            'nombre_completo' => 'Nombre Completo',
+                                            'tipo_dificultad' => 'Tipo de Dificultad'
                                         ];
 
                                         // Mostrar primero las columnas seleccionadas en orden
