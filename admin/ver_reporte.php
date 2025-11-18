@@ -4,6 +4,34 @@ require_once '../config/database.php';
 require_once 'includes/report_functions.php';
 require_once 'report_generator.php';
 
+// Funciones auxiliares para evitar redundancia
+function obtenerNombreCampo($campo) {
+    $nombres = [
+        'nivel' => 'Nivel',
+        'curso' => 'Curso', 
+        'paralelo' => 'Paralelo',
+        'genero' => 'Género',
+        'edad_min' => 'Edad Mínima',
+        'edad_max' => 'Edad Máxima',
+        'pais' => 'País',
+        'con_carnet' => 'Con Carnet',
+        'con_rude' => 'Con RUDE'
+    ];
+    return $nombres[$campo] ?? ucfirst($campo);
+}
+
+function obtenerValorMostrar($valor) {
+    if (is_array($valor)) {
+        return implode(', ', $valor);
+    }
+    
+    $valores_especiales = [
+        '1' => 'Sí',
+        '0' => 'No'
+    ];
+    return $valores_especiales[$valor] ?? $valor;
+}
+
 // Verificar solo para administrador
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 1) {
     header('Location: ../index.php');
@@ -317,33 +345,8 @@ $tipo_base = $reporte['tipo_base'];
                 <h5><i class="fas fa-filter me-2"></i>Filtros Aplicados</h5>
                 <div class="filters-list">
                     <?php foreach ($filtros as $campo => $valor): ?>
-                        <?php
-                        $campo_nombre = '';
-                        switch($campo) {
-                            case 'nivel': $campo_nombre = 'Nivel'; break;
-                            case 'curso': $campo_nombre = 'Curso'; break;
-                            case 'paralelo': $campo_nombre = 'Paralelo'; break;
-                            case 'genero': $campo_nombre = 'Género'; break;
-                            case 'edad_min': $campo_nombre = 'Edad Mínima'; break;
-                            case 'edad_max': $campo_nombre = 'Edad Máxima'; break;
-                            case 'pais': $campo_nombre = 'País'; break;
-                            case 'con_carnet': $campo_nombre = 'Con Carnet'; break;
-                            case 'con_rude': $campo_nombre = 'Con RUDE'; break;
-                            default: $campo_nombre = ucfirst($campo); break;
-                        }
-                        
-                        if (is_array($valor)) {
-                            $valor_mostrar = implode(', ', $valor);
-                        } else {
-                            switch($valor) {
-                                case '1': $valor_mostrar = 'Sí'; break;
-                                case '0': $valor_mostrar = 'No'; break;
-                                default: $valor_mostrar = $valor; break;
-                            }
-                        }
-                        ?>
                         <span class="filter-tag">
-                            <strong><?php echo $campo_nombre; ?>:</strong> <?php echo htmlspecialchars($valor_mostrar); ?>
+                            <strong><?php echo obtenerNombreCampo($campo); ?>:</strong> <?php echo htmlspecialchars(obtenerValorMostrar($valor)); ?>
                         </span>
                     <?php endforeach; ?>
                 </div>

@@ -59,6 +59,12 @@ $reporte_generado = false;
 $mensaje_reporte = '';
 $datos_guardados_temporalmente = false;
 
+// Mantener mensaje de éxito si existe en sesión
+if (isset($_SESSION['mensaje_reporte'])) {
+    $mensaje_reporte = $_SESSION['mensaje_reporte'];
+    unset($_SESSION['mensaje_reporte']);
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Logging completo de POST
     error_log("=== POST RECIBIDO ===");
@@ -97,9 +103,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     error_log("Filtros procesados: " . print_r($filtros, true));
     
-    // Columnas seleccionadas
+    // Columnas seleccionadas con orden
     $columnas = $_POST['columnas'] ?? [];
-    error_log("Columnas recibidas: " . print_r($columnas, true));
+    $columnas_orden = $_POST['columnas_orden'] ?? [];
+
+    // Ordenar columnas según el orden definido por el usuario
+    if (!empty($columnas) && !empty($columnas_orden)) {
+        // Crear un array asociativo con el orden de cada columna
+        $columnas_con_orden = [];
+        foreach ($columnas as $campo) {
+            if (isset($columnas_orden[$campo])) {
+                $columnas_con_orden[$campo] = (int)$columnas_orden[$campo];
+            }
+        }
+        
+        // Ordenar las columnas por su valor de orden
+        asort($columnas_con_orden);
+        $columnas = array_keys($columnas_con_orden);
+    }
+
+    error_log("Columnas recibidas con orden: " . print_r($columnas, true));
     
     if ($accion == 'guardar') {
         // Guardar configuración del reporte
@@ -122,14 +145,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <strong>¡Reporte ' . ($id_reporte_editar_post ? 'actualizado' : 'guardado') . ' exitosamente!</strong> ID del reporte: ' . $resultado['id_reporte'] . '
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>';
+            
+            // Guardar mensaje en sesión para que persista después de redirección
+            $_SESSION['mensaje_reporte'] = $mensaje_reporte;
+            
             $reporte_generado = true;
-            // Limpiar datos temporales después de guardar
-            unset($_SESSION['reporte_temporal']);
+            // Mantener datos temporales para mostrar resultados después de guardar
+            $datos_guardados_temporalmente = true;
+            
+            // Guardar datos en sesión para mostrar resultados
+            $_SESSION['reporte_temporal'] = [
+                'filtros' => $filtros,
+                'columnas' => $columnas,
+                'tipo_base' => $tipo_base
+            ];
         } else {
             $mensaje_reporte = '<div class="alert alert-danger">
                 <i class="fas fa-exclamation-triangle me-2"></i>
                 <strong>Error al guardar el reporte:</strong> ' . htmlspecialchars($resultado['error']) . '
             </div>';
+            // Si hay error al guardar, mantener los datos para reintentar
+            $reporte_generado = true;
+            $datos_guardados_temporalmente = true;
+            
+            // Mantener datos en sesión para reintentar
+            $_SESSION['reporte_temporal'] = [
+                'filtros' => $filtros,
+                'columnas' => $columnas,
+                'tipo_base' => $tipo_base
+            ];
         }
     } elseif ($accion == 'generar') {
         $reporte_generado = true;
@@ -408,9 +452,123 @@ function generarOpcionesSelect($array, $valor_key, $texto_key, $seleccionados = 
         }
 
         .column-selection {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .selected-columns h6,
+        .available-columns h6 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #495057;
+        }
+
+        .columns-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-height: 200px;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            background-color: #f8f9fa;
+        }
+
+        .columns-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .column-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .column-item.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: 2px solid #5a67d8;
+        }
+
+        .column-item.available {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+
+        .column-item.selected:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .column-item.available:hover {
+            background-color: #e9ecef;
+        }
+
+        .column-controls {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .column-name {
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .column-order-controls {
+            display: flex;
+            gap: 0.25rem;
+            align-items: center;
+        }
+
+        .btn-order {
+            background: none;
+            border: none;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.8rem;
+        }
+
+        .btn-order:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .btn-order.btn-remove {
+            color: #ff6b6b;
+        }
+
+        .btn-order.btn-remove:hover {
+            background-color: rgba(255, 107, 107, 0.2);
+        }
+
+        .btn-add {
+            background: none;
+            border: 1px solid #28a745;
+            color: #28a745;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .btn-add:hover {
+            background-color: #28a745;
+            color: white;
+            transform: translateY(-1px);
         }
 
         .form-check {
@@ -462,8 +620,17 @@ function generarOpcionesSelect($array, $valor_key, $texto_key, $seleccionados = 
                 flex-direction: column;
             }
             
-            .column-selection {
+            .columns-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .column-order-controls {
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+            
+            .btn-order {
+                padding: 0.25rem;
             }
         }
     </style>
@@ -486,51 +653,6 @@ function generarOpcionesSelect($array, $valor_key, $texto_key, $seleccionados = 
                         <input type="hidden" name="tipo_base" value="<?php echo htmlspecialchars($tipo_reporte); ?>">
                         <?php if ($editando): ?>
                         <input type="hidden" name="id_reporte_editar" value="<?php echo $id_reporte_editar; ?>">
-                        
-                        <!-- Resumen de Filtros Aplicados -->
-                        <?php if (!empty($filtros)): ?>
-                        <div class="filter-summary" style="background-color: rgba(0, 0, 0, 0.02); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; border-left: 4px solid #667eea;">
-                            <h6 style="color: #667eea; margin-bottom: 1rem; font-weight: 600;">
-                                <i class="fas fa-filter me-2"></i>Filtros Aplicados en este Reporte
-                            </h6>
-                            <div class="filters-list">
-                                <?php foreach ($filtros as $campo => $valor): ?>
-                                    <?php
-                                    $campo_nombre = '';
-                                    switch($campo) {
-                                        case 'nivel': $campo_nombre = 'Nivel'; break;
-                                        case 'curso': $campo_nombre = 'Curso'; break;
-                                        case 'paralelo': $campo_nombre = 'Paralelo'; break;
-                                        case 'genero': $campo_nombre = 'Género'; break;
-                                        case 'edad_min': $campo_nombre = 'Edad Mínima'; break;
-                                        case 'edad_max': $campo_nombre = 'Edad Máxima'; break;
-                                        case 'pais': $campo_nombre = 'País'; break;
-                                        case 'carnet_identidad': $campo_nombre = 'Carnet de Identidad'; break;
-                                        case 'certificado_nacimiento': $campo_nombre = 'Certificado de Nacimiento'; break;
-                                        default: $campo_nombre = ucfirst($campo); break;
-                                    }
-                                    
-                                    if (is_array($valor)) {
-                                        $valor_mostrar = implode(', ', $valor);
-                                    } elseif ($campo == 'carnet_identidad') {
-                                        $valor_mostrar = ($valor == 'con') ? 'Con Carnet' : 'Sin Carnet';
-                                    } elseif ($campo == 'certificado_nacimiento') {
-                                        $valor_mostrar = ($valor == 'con') ? 'Con Certificado' : 'Sin Certificado';
-                                    } else {
-                                        switch($valor) {
-                                            case '1': $valor_mostrar = 'Sí'; break;
-                                            case '0': $valor_mostrar = 'No'; break;
-                                            default: $valor_mostrar = $valor; break;
-                                        }
-                                    }
-                                    ?>
-                                    <span class="filter-tag" style="display: inline-block; padding: 0.4rem 0.8rem; background-color: #e9ecef; border-radius: 15px; margin: 0.2rem; font-size: 0.85rem; color: #495057;">
-                                        <strong><?php echo $campo_nombre; ?>:</strong> <?php echo htmlspecialchars($valor_mostrar); ?>
-                                    </span>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                        <?php endif; ?>
                         
                         <!-- Información del Reporte (solo en modo edición) -->
                         <?php if ($editando): ?>
@@ -788,36 +910,78 @@ function generarOpcionesSelect($array, $valor_key, $texto_key, $seleccionados = 
                         <div class="filter-section">
                             <h5><i class="fas fa-columns"></i> Columnas a Mostrar</h5>
                             <div class="column-selection">
-                                <?php
-                                $columnas_disponibles = [
-                                    'id_estudiante' => 'ID Estudiante',
-                                    'nombres' => 'Nombres',
-                                    'apellido_paterno' => 'Apellido Paterno',
-                                    'apellido_materno' => 'Apellido Materno',
-                                    'genero' => 'Género',
-                                    'fecha_nacimiento' => 'Fecha de Nacimiento',
-                                    'edad' => 'Edad',
-                                    'carnet_identidad' => 'Carnet de Identidad',
-                                    'rude' => 'RUDE',
-                                    'pais' => 'País',
-                                    'provincia_departamento' => 'Provincia/Departamento',
-                                    'nivel' => 'Nivel',
-                                    'curso' => 'Curso',
-                                    'paralelo' => 'Paralelo',
-                                    'nombre_completo' => 'Nombre Completo'
-                                ];
+                                <div class="selected-columns" id="selectedColumns">
+                                    <h6><i class="fas fa-list"></i> Columnas Seleccionadas (Arrastra o usa flechas para ordenar)</h6>
+                                    <div class="columns-list" id="columnsList">
+                                        <?php
+                                        // Obtener columnas seleccionadas con su orden
+                                        $columnas_con_orden = [];
+                                        if (isset($columnas) && !empty($columnas)) {
+                                            foreach ($columnas as $index => $campo) {
+                                                $columnas_con_orden[$campo] = $index + 1;
+                                            }
+                                        }
+                                        
+                                        $columnas_disponibles = [
+                                            'id_estudiante' => 'ID Estudiante',
+                                            'nombres' => 'Nombres',
+                                            'apellido_paterno' => 'Apellido Paterno',
+                                            'apellido_materno' => 'Apellido Materno',
+                                            'genero' => 'Género',
+                                            'fecha_nacimiento' => 'Fecha de Nacimiento',
+                                            'edad' => 'Edad',
+                                            'carnet_identidad' => 'Carnet de Identidad',
+                                            'rude' => 'RUDE',
+                                            'pais' => 'País',
+                                            'provincia_departamento' => 'Provincia/Departamento',
+                                            'nivel' => 'Nivel',
+                                            'curso' => 'Curso',
+                                            'paralelo' => 'Paralelo',
+                                            'nombre_completo' => 'Nombre Completo'
+                                        ];
 
-                                foreach ($columnas_disponibles as $campo => $alias):
-                                ?>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="columnas[]" 
-                                               value="<?php echo $campo; ?>" id="col_<?php echo $campo; ?>"
-                                               <?php echo (isset($columnas) && in_array($campo, $columnas)) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label" for="col_<?php echo $campo; ?>">
-                                            <?php echo $alias; ?>
-                                        </label>
+                                        // Mostrar primero las columnas seleccionadas en orden
+                                        if (!empty($columnas_con_orden)) {
+                                            foreach ($columnas_con_orden as $campo => $orden) {
+                                                if (isset($columnas_disponibles[$campo])) {
+                                                    $alias = $columnas_disponibles[$campo];
+                                                    echo '<div class="column-item selected" data-column="' . $campo . '">';
+                                                    echo '<div class="column-controls">';
+                                                    echo '<input type="hidden" name="columnas[]" value="' . $campo . '">';
+                                                    echo '<input type="hidden" name="columnas_orden[' . $campo . ']" value="' . $orden . '" class="orden-input">';
+                                                    echo '<span class="column-name">' . $alias . '</span>';
+                                                    echo '</div>';
+                                                    echo '<div class="column-order-controls">';
+                                                    echo '<button type="button" class="btn-order btn-up" onclick="moveColumn(\'' . $campo . '\', \'up\')"><i class="fas fa-arrow-up"></i></button>';
+                                                    echo '<button type="button" class="btn-order btn-down" onclick="moveColumn(\'' . $campo . '\', \'down\')"><i class="fas fa-arrow-down"></i></button>';
+                                                    echo '<button type="button" class="btn-order btn-remove" onclick="removeColumn(\'' . $campo . '\')"><i class="fas fa-times"></i></button>';
+                                                    echo '</div>';
+                                                    echo '</div>';
+                                                }
+                                            }
+                                        }
+                                        ?>
                                     </div>
-                                <?php endforeach; ?>
+                                </div>
+                                
+                                <div class="available-columns">
+                                    <h6><i class="fas fa-plus-circle"></i> Columnas Disponibles</h6>
+                                    <div class="columns-grid">
+                                        <?php
+                                        foreach ($columnas_disponibles as $campo => $alias):
+                                            if (!isset($columnas_con_orden[$campo])):
+                                        ?>
+                                            <div class="column-item available" data-column="<?php echo $campo; ?>">
+                                                <button type="button" class="btn-add" onclick="addColumn('<?php echo $campo; ?>', '<?php echo addslashes($alias); ?>')">
+                                                    <i class="fas fa-plus"></i> <?php echo $alias; ?>
+                                                </button>
+                                            </div>
+                                        <?php
+                                            endif;
+                                        endforeach;
+                                        ?>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -907,26 +1071,126 @@ function generarOpcionesSelect($array, $valor_key, $texto_key, $seleccionados = 
 
         // Validación básica del formulario
         document.getElementById('formConstructor').addEventListener('submit', function(e) {
-            const accion = document.querySelector('button[name="accion"]:focus')?.value;
+            var accion = document.querySelector('input[name="accion"]:checked')?.value || 
+                         document.querySelector('button[name="accion"]')?.value;
             
             if (accion === 'guardar') {
-                const nombreReporte = document.querySelector('input[name="nombre_reporte"]').value;
+                // Buscar el campo nombre_reporte que esté visible
+                const nombreReporteInput = document.querySelector('input[name="nombre_reporte"]:not([style*="display: none"])') 
+                    || document.querySelector('.save-section input[name="nombre_reporte"]') 
+                    || document.querySelector('input[name="nombre_reporte"]');
+                const nombreReporte = nombreReporteInput ? nombreReporteInput.value : '';
+                
                 if (!nombreReporte.trim()) {
                     e.preventDefault();
                     alert('Por favor, ingresa un nombre para el reporte.');
-                    document.querySelector('input[name="nombre_reporte"]').focus();
+                    nombreReporteInput.focus();
                     return;
                 }
             }
-
-            // Validar que siempre haya columnas seleccionadas (tanto para generar como para guardar)
-            const columnasSeleccionadas = document.querySelectorAll('input[name="columnas[]"]:checked');
-            if (columnasSeleccionadas.length === 0) {
+            
+            // Validar que se hayan seleccionado columnas
+            const selectedColumns = document.querySelectorAll('#columnsList .column-item.selected');
+            if (selectedColumns.length === 0) {
                 e.preventDefault();
                 alert('Por favor, selecciona al menos una columna para mostrar.');
                 return;
             }
         });
+
+        // Funciones para manejo de columnas
+        function addColumn(campo, alias) {
+            const columnsList = document.getElementById('columnsList');
+            const availableItem = document.querySelector(`.column-item.available[data-column="${campo}"]`);
+            
+            if (availableItem) {
+                // Crear nuevo elemento de columna seleccionada
+                const columnItem = document.createElement('div');
+                columnItem.className = 'column-item selected';
+                columnItem.dataset.column = campo;
+                
+                // Obtener el siguiente orden
+                const nextOrder = columnsList.children.length + 1;
+                
+                columnItem.innerHTML = `
+                    <div class="column-controls">
+                        <input type="hidden" name="columnas[]" value="${campo}">
+                        <input type="hidden" name="columnas_orden[${campo}]" value="${nextOrder}" class="orden-input">
+                        <span class="column-name">${alias}</span>
+                    </div>
+                    <div class="column-order-controls">
+                        <button type="button" class="btn-order btn-up" onclick="moveColumn('${campo}', 'up')"><i class="fas fa-arrow-up"></i></button>
+                        <button type="button" class="btn-order btn-down" onclick="moveColumn('${campo}', 'down')"><i class="fas fa-arrow-down"></i></button>
+                        <button type="button" class="btn-order btn-remove" onclick="removeColumn('${campo}')"><i class="fas fa-times"></i></button>
+                    </div>
+                `;
+                
+                columnsList.appendChild(columnItem);
+                availableItem.remove();
+                
+                // Actualizar órdenes
+                updateColumnOrders();
+            }
+        }
+
+        function removeColumn(campo) {
+            const columnItem = document.querySelector(`#columnsList .column-item.selected[data-column="${campo}"]`);
+            const availableColumns = document.querySelector('.columns-grid');
+            
+            if (columnItem) {
+                // Obtener el alias de la columna
+                const alias = columnItem.querySelector('.column-name').textContent;
+                
+                // Crear elemento disponible
+                const availableItem = document.createElement('div');
+                availableItem.className = 'column-item available';
+                availableItem.dataset.column = campo;
+                availableItem.innerHTML = `
+                    <button type="button" class="btn-add" onclick="addColumn('${campo}', '${alias.replace(/'/g, "\\'")}')">
+                        <i class="fas fa-plus"></i> ${alias}
+                    </button>
+                `;
+                
+                availableColumns.appendChild(availableItem);
+                columnItem.remove();
+                
+                // Actualizar órdenes
+                updateColumnOrders();
+            }
+        }
+
+        function moveColumn(campo, direction) {
+            const columnsList = document.getElementById('columnsList');
+            const currentColumn = document.querySelector(`#columnsList .column-item.selected[data-column="${campo}"]`);
+            
+            if (!currentColumn) return;
+            
+            if (direction === 'up') {
+                const previousColumn = currentColumn.previousElementSibling;
+                if (previousColumn) {
+                    columnsList.insertBefore(currentColumn, previousColumn);
+                }
+            } else if (direction === 'down') {
+                const nextColumn = currentColumn.nextElementSibling;
+                if (nextColumn) {
+                    columnsList.insertBefore(nextColumn, currentColumn);
+                }
+            }
+            
+            // Actualizar órdenes
+            updateColumnOrders();
+        }
+
+        function updateColumnOrders() {
+            const selectedColumns = document.querySelectorAll('#columnsList .column-item.selected');
+            
+            selectedColumns.forEach((column, index) => {
+                const ordenInput = column.querySelector('.orden-input');
+                if (ordenInput) {
+                    ordenInput.value = index + 1;
+                }
+            });
+        }
     </script>
 </body>
 </html>

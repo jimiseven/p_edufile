@@ -246,7 +246,7 @@ $conn = $db->connect();
                                                 <a href="#" class="btn-action btn-view" title="Ver Reporte" onclick="viewReport(<?php echo $reporte['id_reporte']; ?>); return false;">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a href="#" class="btn-action btn-download" title="Descargar">
+                                                <a href="#" class="btn-action btn-download" title="Descargar" onclick="downloadReport(<?php echo $reporte['id_reporte']; ?>); return false;">
                                                     <i class="fas fa-download"></i>
                                                 </a>
                                                 <a href="#" class="btn-action btn-delete" title="Eliminar" onclick="deleteReport(<?php echo $reporte['id_reporte']; ?>)">

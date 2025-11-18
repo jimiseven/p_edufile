@@ -235,10 +235,10 @@ function guardarReporte($nombre, $tipo_base, $descripcion, $filtros, $columnas, 
             // Actualizar reporte existente
             $stmt = $conn->prepare("
                 UPDATE reportes_guardados 
-                SET nombre = ?, tipo_base = ?, descripcion = ?, fecha_modificacion = NOW() 
+                SET nombre = ?, tipo_base = ?, fecha_modificacion = NOW() 
                 WHERE id_reporte = ? AND id_personal = ?
             ");
-            $stmt->execute([$nombre, $tipo_base, $descripcion, $id_reporte_editar, $_SESSION['user_id']]);
+            $stmt->execute([$nombre, $tipo_base, $id_reporte_editar, $_SESSION['user_id']]);
             error_log("Reporte actualizado, ID: " . $id_reporte_editar);
             
             // Eliminar filtros y columnas existentes
@@ -252,10 +252,10 @@ function guardarReporte($nombre, $tipo_base, $descripcion, $filtros, $columnas, 
         } else {
             // Insertar nuevo reporte
             $stmt = $conn->prepare("
-                INSERT INTO reportes_guardados (nombre, tipo_base, descripcion, id_personal) 
-                VALUES (?, ?, ?, ?)
+                INSERT INTO reportes_guardados (nombre, tipo_base, id_personal) 
+                VALUES (?, ?, ?)
             ");
-            $stmt->execute([$nombre, $tipo_base, $descripcion, $_SESSION['user_id']]);
+            $stmt->execute([$nombre, $tipo_base, $_SESSION['user_id']]);
             $id_reporte = $conn->lastInsertId();
             error_log("Reporte principal insertado, ID: " . $id_reporte);
         }

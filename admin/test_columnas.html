@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Prueba de Ordenamiento de Columnas</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <style>
+        .column-selection {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .selected-columns h6,
+        .available-columns h6 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #495057;
+        }
+
+        .columns-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-height: 200px;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            background-color: #f8f9fa;
+        }
+
+        .columns-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .column-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .column-item.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: 2px solid #5a67d8;
+        }
+
+        .column-item.available {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+
+        .column-item.selected:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .column-item.available:hover {
+            background-color: #e9ecef;
+        }
+
+        .column-controls {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .column-name {
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .column-order-controls {
+            display: flex;
+            gap: 0.25rem;
+            align-items: center;
+        }
+
+        .btn-order {
+            background: none;
+            border: none;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.8rem;
+        }
+
+        .btn-order:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .btn-order.btn-remove {
+            color: #ff6b6b;
+        }
+
+        .btn-order.btn-remove:hover {
+            background-color: rgba(255, 107, 107, 0.2);
+        }
+
+        .btn-add {
+            background: none;
+            border: 1px solid #28a745;
+            color: #28a745;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .btn-add:hover {
+            background-color: #28a745;
+            color: white;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <h1>Prueba de Sistema de Columnas</h1>
+    
+    <div class="column-selection">
+        <div class="selected-columns" id="selectedColumns">
+            <h6><i class="fas fa-list"></i> Columnas Seleccionadas</h6>
+            <div class="columns-list" id="columnsList">
+                <!-- Columnas iniciales para prueba -->
+                <div class="column-item selected" data-column="nombres">
+                    <div class="column-controls">
+                        <input type="hidden" name="columnas[]" value="nombres">
+                        <input type="hidden" name="columnas_orden[nombres]" value="1" class="orden-input">
+                        <span class="column-name">Nombres</span>
+                    </div>
+                    <div class="column-order-controls">
+                        <button type="button" class="btn-order btn-up" onclick="moveColumn('nombres', 'up')"><i class="fas fa-arrow-up"></i></button>
+                        <button type="button" class="btn-order btn-down" onclick="moveColumn('nombres', 'down')"><i class="fas fa-arrow-down"></i></button>
+                        <button type="button" class="btn-order btn-remove" onclick="removeColumn('nombres')"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="available-columns">
+            <h6><i class="fas fa-plus-circle"></i> Columnas Disponibles</h6>
+            <div class="columns-grid">
+                <div class="column-item available" data-column="apellido_paterno">
+                    <button type="button" class="btn-add" onclick="addColumn('apellido_paterno', 'Apellido Paterno')">
+                        <i class="fas fa-plus"></i> Apellido Paterno
+                    </button>
+                </div>
+                <div class="column-item available" data-column="apellido_materno">
+                    <button type="button" class="btn-add" onclick="addColumn('apellido_materno', 'Apellido Materno')">
+                        <i class="fas fa-plus"></i> Apellido Materno
+                    </button>
+                </div>
+                <div class="column-item available" data-column="edad">
+                    <button type="button" class="btn-add" onclick="addColumn('edad', 'Edad')">
+                        <i class="fas fa-plus"></i> Edad
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <button onclick="verOrdenActual()">Ver Orden Actual</button>
+        <pre id="resultado"></pre>
+    </div>
+
+    <script>
+        // Funciones para manejo de columnas
+        function addColumn(campo, alias) {
+            const columnsList = document.getElementById('columnsList');
+            const availableItem = document.querySelector(`.column-item.available[data-column="${campo}"]`);
+            
+            if (availableItem) {
+                // Crear nuevo elemento de columna seleccionada
+                const columnItem = document.createElement('div');
+                columnItem.className = 'column-item selected';
+                columnItem.dataset.column = campo;
+                
+                // Obtener el siguiente orden
+                const nextOrder = columnsList.children.length + 1;
+                
+                columnItem.innerHTML = `
+                    <div class="column-controls">
+                        <input type="hidden" name="columnas[]" value="${campo}">
+                        <input type="hidden" name="columnas_orden[${campo}]" value="${nextOrder}" class="orden-input">
+                        <span class="column-name">${alias}</span>
+                    </div>
+                    <div class="column-order-controls">
+                        <button type="button" class="btn-order btn-up" onclick="moveColumn('${campo}', 'up')"><i class="fas fa-arrow-up"></i></button>
+                        <button type="button" class="btn-order btn-down" onclick="moveColumn('${campo}', 'down')"><i class="fas fa-arrow-down"></i></button>
+                        <button type="button" class="btn-order btn-remove" onclick="removeColumn('${campo}')"><i class="fas fa-times"></i></button>
+                    </div>
+                `;
+                
+                columnsList.appendChild(columnItem);
+                availableItem.remove();
+                
+                // Actualizar órdenes
+                updateColumnOrders();
+            }
+        }
+
+        function removeColumn(campo) {
+            const columnItem = document.querySelector(`#columnsList .column-item.selected[data-column="${campo}"]`);
+            const availableColumns = document.querySelector('.columns-grid');
+            
+            if (columnItem) {
+                // Obtener el alias de la columna
+                const alias = columnItem.querySelector('.column-name').textContent;
+                
+                // Crear elemento disponible
+                const availableItem = document.createElement('div');
+                availableItem.className = 'column-item available';
+                availableItem.dataset.column = campo;
+                availableItem.innerHTML = `
+                    <button type="button" class="btn-add" onclick="addColumn('${campo}', '${alias.replace(/'/g, "\\'")}')">
+                        <i class="fas fa-plus"></i> ${alias}
+                    </button>
+                `;
+                
+                availableColumns.appendChild(availableItem);
+                columnItem.remove();
+                
+                // Actualizar órdenes
+                updateColumnOrders();
+            }
+        }
+
+        function moveColumn(campo, direction) {
+            const columnsList = document.getElementById('columnsList');
+            const currentColumn = document.querySelector(`#columnsList .column-item.selected[data-column="${campo}"]`);
+            
+            if (!currentColumn) return;
+            
+            if (direction === 'up') {
+                const previousColumn = currentColumn.previousElementSibling;
+                if (previousColumn) {
+                    columnsList.insertBefore(currentColumn, previousColumn);
+                }
+            } else if (direction === 'down') {
+                const nextColumn = currentColumn.nextElementSibling;
+                if (nextColumn) {
+                    columnsList.insertBefore(nextColumn, currentColumn);
+                }
+            }
+            
+            // Actualizar órdenes
+            updateColumnOrders();
+        }
+
+        function updateColumnOrders() {
+            const selectedColumns = document.querySelectorAll('#columnsList .column-item.selected');
+            
+            selectedColumns.forEach((column, index) => {
+                const ordenInput = column.querySelector('.orden-input');
+                if (ordenInput) {
+                    ordenInput.value = index + 1;
+                }
+            });
+        }
+
+        function verOrdenActual() {
+            const selectedColumns = document.querySelectorAll('#columnsList .column-item.selected');
+            const orden = [];
+            
+            selectedColumns.forEach((column) => {
+                const campo = column.dataset.column;
+                const ordenInput = column.querySelector('.orden-input');
+                const nombre = column.querySelector('.column-name').textContent;
+                orden.push({
+                    campo: campo,
+                    nombre: nombre,
+                    orden: ordenInput ? ordenInput.value : 0
+                });
+            });
+            
+            document.getElementById('resultado').textContent = JSON.stringify(orden, null, 2);
+        }
+    </script>
+</body>
+</html>
