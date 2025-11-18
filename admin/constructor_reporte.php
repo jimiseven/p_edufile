@@ -135,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Verificar si se está editando
         $id_reporte_editar_post = $_POST['id_reporte_editar'] ?? 0;
         
-        $resultado = guardarReporte($nombre_reporte, $tipo_base, $descripcion_reporte, $filtros, $columnas, $id_reporte_editar_post);
+        $resultado = guardarReporte($nombre_reporte, $tipo_base, $descripcion_reporte, $filtros, $columnas, $columnas_orden, $id_reporte_editar_post);
         
         error_log("Resultado: " . print_r($resultado, true));
         
@@ -157,6 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['reporte_temporal'] = [
                 'filtros' => $filtros,
                 'columnas' => $columnas,
+                'columnas_orden' => $columnas_orden,
                 'tipo_base' => $tipo_base
             ];
         } else {
@@ -172,6 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['reporte_temporal'] = [
                 'filtros' => $filtros,
                 'columnas' => $columnas,
+                'columnas_orden' => $columnas_orden,
                 'tipo_base' => $tipo_base
             ];
         }
@@ -181,6 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['reporte_temporal'] = [
             'filtros' => $filtros,
             'columnas' => $columnas,
+            'columnas_orden' => $columnas_orden,
             'tipo_base' => $tipo_base
         ];
         $datos_guardados_temporalmente = true;
@@ -437,6 +440,18 @@ function generarOpcionesSelect($array, $valor_key, $texto_key, $seleccionados = 
 
         .save-buttons-container .btn-generate:hover {
             background: #138496;
+            transform: translateY(-1px);
+        }
+
+        .save-buttons-container .btn-download {
+            background: #dc3545;
+            border: none;
+            color: white;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+        }
+
+        .save-buttons-container .btn-download:hover {
+            background: #c82333;
             transform: translateY(-1px);
         }
 
@@ -1014,6 +1029,9 @@ function generarOpcionesSelect($array, $valor_key, $texto_key, $seleccionados = 
                                     <button type="button" class="btn-action btn-generate" onclick="generarNuevo()">
                                         <i class="fas fa-redo me-2"></i> Generar Nuevo
                                     </button>
+                                    <button type="button" class="btn-action btn-download" onclick="descargarPDF()">
+                                        <i class="fas fa-file-excel me-2"></i> Descargar Excel
+                                    </button>
                                 </div>
                             </div>
                         <?php else: ?>
@@ -1067,6 +1085,11 @@ function generarOpcionesSelect($array, $valor_key, $texto_key, $seleccionados = 
                 // Limpiar datos temporales de sesión y recargar
                 window.location.href = 'constructor_reporte.php?tipo=<?php echo $tipo_reporte; ?>';
             }
+        }
+
+        // Función para descargar reporte temporal como Excel
+        function descargarPDF() {
+            window.location.href = 'download_temporal_report_excel.php';
         }
 
         // Validación básica del formulario

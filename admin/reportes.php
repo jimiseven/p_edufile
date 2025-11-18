@@ -284,8 +284,8 @@ $conn = $db->connect();
         }
 
         function downloadReport(id) {
-            // Función para descargar un reporte
-            window.location.href = 'download_report.php?id=' + id;
+            // Función para descargar un reporte como Excel
+            window.location.href = 'download_report_excel.php?id=' + id;
         }
 
         function deleteReport(id) {

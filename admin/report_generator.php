@@ -194,7 +194,13 @@ function construirConsultaSQL($filtros, $columnas, $tipo_base) {
         $sql .= " WHERE " . implode(" AND ", $where);
     }
     
-    $sql .= " ORDER BY e.apellido_paterno, e.apellido_materno, e.nombres";
+    // Verificar que el SQL tenga las partes básicas antes de agregar ORDER BY
+    if (strpos($sql, 'SELECT') !== false && strpos($sql, 'FROM') !== false) {
+        $sql .= " ORDER BY e.apellido_paterno, e.apellido_materno, e.nombres";
+    } else {
+        error_log("ERROR: SQL incompleto, no se agrega ORDER BY");
+        error_log("SQL actual: " . $sql);
+    }
     
     error_log("SQL FINAL generado: " . $sql);
     error_log("Parámetros: " . print_r($params, true));
@@ -214,7 +220,7 @@ function construirConsultaSQL($filtros, $columnas, $tipo_base) {
 /**
  * Guarda configuración del reporte en la base de datos
  */
-function guardarReporte($nombre, $tipo_base, $descripcion, $filtros, $columnas, $id_reporte_editar = 0) {
+function guardarReporte($nombre, $tipo_base, $descripcion, $filtros, $columnas, $columnas_orden = [], $id_reporte_editar = 0) {
     global $conn;
     
     error_log("=== guardarReporte INICIO ===");
@@ -223,6 +229,7 @@ function guardarReporte($nombre, $tipo_base, $descripcion, $filtros, $columnas, 
     error_log("Descripción: " . $descripcion);
     error_log("Filtros: " . print_r($filtros, true));
     error_log("Columnas: " . print_r($columnas, true));
+    error_log("Orden de Columnas: " . print_r($columnas_orden, true));
     error_log("User ID: " . ($_SESSION['user_id'] ?? 'NO DEFINIDO'));
     error_log("ID Reporte Editar: " . $id_reporte_editar);
     
@@ -295,7 +302,6 @@ function guardarReporte($nombre, $tipo_base, $descripcion, $filtros, $columnas, 
                 VALUES (?, ?, ?, ?)
             ");
             
-            $orden = 1;
             $columnas_disponibles = [
                 'id_estudiante' => 'ID Estudiante',
                 'nombres' => 'Nombres',
@@ -314,11 +320,24 @@ function guardarReporte($nombre, $tipo_base, $descripcion, $filtros, $columnas, 
                 'nombre_completo' => 'Nombre Completo'
             ];
             
+            // Usar el orden definido por el usuario si está disponible
             foreach ($columnas as $columna) {
                 $alias = $columnas_disponibles[$columna] ?? $columna;
-                $stmt_columna->execute([$id_reporte, $columna, $alias, $orden]);
-                error_log("Columna insertada - Campo: $columna, Alias: $alias, Orden: $orden");
-                $orden++;
+                
+                // Obtener el orden correcto para esta columna
+                $orden_columna = 1; // Default si no hay orden definido
+                if (!empty($columnas_orden) && isset($columnas_orden[$columna])) {
+                    $orden_columna = (int)$columnas_orden[$columna];
+                } else {
+                    // Si no hay orden definido, buscar el índice en el array de columnas
+                    $indice = array_search($columna, $columnas);
+                    if ($indice !== false) {
+                        $orden_columna = $indice + 1;
+                    }
+                }
+                
+                $stmt_columna->execute([$id_reporte, $columna, $alias, $orden_columna]);
+                error_log("Columna insertada - Campo: $columna, Alias: $alias, Orden: $orden_columna");
             }
         } else {
             error_log("No hay columnas para insertar");
@@ -368,16 +387,10 @@ function cargarReporteGuardado($id_reporte) {
         $stmt->execute([$id_reporte]);
         $filtros_db = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Depuración
-        error_log("=== DEPURACIÓN cargarReporteGuardado ===");
-        error_log("ID Reporte: " . $id_reporte);
-        error_log("Filtros desde BD: " . print_r($filtros_db, true));
-        
-        // Procesar filtros
+        // Convertir filtros a array asociativo
         $filtros = [];
         foreach ($filtros_db as $filtro) {
-            if ($filtro['operador'] == 'in') {
-                // Convertir string separado por comas a array
+            if ($filtro['operador'] === 'in') {
                 $filtros[$filtro['campo']] = explode(',', $filtro['valor1']);
             } else {
                 $filtros[$filtro['campo']] = $filtro['valor1'];
@@ -394,17 +407,64 @@ function cargarReporteGuardado($id_reporte) {
         $stmt->execute([$id_reporte]);
         $columnas_db = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Extraer solo los nombres de campos
+        // Extraer nombres de columnas
         $columnas = [];
         foreach ($columnas_db as $columna) {
             $columnas[] = $columna['campo'];
+            error_log("Columna cargada - Campo: " . $columna['campo'] . ", Orden: " . $columna['orden']);
         }
         
-        return [
-            'reporte' => $reporte,
+        error_log("Columnas procesadas: " . print_r($columnas, true));
+        
+        // EJECUTAR CONSULTA PARA OBTENER RESULTADOS
+        $consulta = construirConsultaSQL($filtros, $columnas, $reporte['tipo_base']);
+        
+        try {
+            $stmt = $conn->prepare($consulta['sql']);
+            $stmt->execute($consulta['params']);
+            $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            error_log("Resultados obtenidos: " . count($resultados));
+            
+            // Si no hay resultados, devolver array vacío
+            if (empty($resultados)) {
+                $resultados = [];
+            }
+        } catch (Exception $e) {
+            error_log("Error al ejecutar consulta para reporte $id_reporte: " . $e->getMessage());
+            $resultados = [];
+        }
+        
+        // Devolver datos completos del reporte
+        $resultado = [
+            'id_reporte' => $reporte['id_reporte'],
+            'nombre' => $reporte['nombre'],
+            'descripcion' => $reporte['descripcion'] ?? '',
+            'tipo_base' => $reporte['tipo_base'],
+            'fecha_creacion' => $reporte['fecha_creacion'],
+            'fecha_modificacion' => $reporte['fecha_modificacion'] ?? $reporte['fecha_creacion'],
+            'id_personal' => $reporte['id_personal'],
+            'nombres' => $reporte['nombres'],
+            'apellidos' => $reporte['apellidos'],
             'filtros' => $filtros,
-            'columnas' => $columnas
+            'columnas' => $columnas,
+            'resultados' => $resultados
         ];
+        
+        // Mantener compatibilidad con formato anterior
+        $resultado['reporte'] = [
+            'id_reporte' => $reporte['id_reporte'],
+            'nombre' => $reporte['nombre'],
+            'descripcion' => $reporte['descripcion'] ?? '',
+            'tipo_base' => $reporte['tipo_base'],
+            'fecha_creacion' => $reporte['fecha_creacion'],
+            'fecha_modificacion' => $reporte['fecha_modificacion'] ?? $reporte['fecha_creacion'],
+            'id_personal' => $reporte['id_personal'],
+            'nombres' => $reporte['nombres'],
+            'apellidos' => $reporte['apellidos']
+        ];
+        
+        return $resultado;
         
     } catch (Exception $e) {
         return null;

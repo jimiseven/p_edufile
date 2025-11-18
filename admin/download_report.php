@@ -39,12 +39,23 @@ $tipo_base = $reporte['tipo_base'];
 $consulta = construirConsultaSQL($filtros, $columnas, $tipo_base);
 $resultados = [];
 
+error_log("=== DEPURACIÓN DOWNLOAD_REPORT ===");
+error_log("ID Reporte: " . $id_reporte);
+error_log("Filtros: " . print_r($filtros, true));
+error_log("Columnas: " . print_r($columnas, true));
+error_log("Tipo Base: " . $tipo_base);
+
 try {
     $stmt = $conn->prepare($consulta['sql']);
     $stmt->execute($consulta['params']);
     $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    error_log("Resultados obtenidos: " . count($resultados) . " filas");
+    if (!empty($resultados)) {
+        error_log("Primera fila: " . print_r($resultados[0], true));
+    }
 } catch (Exception $e) {
     $error = $e->getMessage();
+    error_log("Error en consulta: " . $error);
 }
 
 // Funciones auxiliares
@@ -374,12 +385,18 @@ function obtenerValorMostrarPDF($valor) {
             const reporteData = {
                 nombre: <?php echo json_encode(htmlspecialchars_decode($reporte['nombre'])); ?>,
                 descripcion: <?php echo json_encode(htmlspecialchars_decode($reporte['descripcion'] ?? '')); ?>,
-                tipo: <?php echo json_encode($tipo_base == 'info_estudiantil' ? 'Información Estudiantil' : 'Información Académica'); ?>,
+                tipo: <?php echo json_encode($tipo_base == 'info_estudentil' ? 'Información Estudiantil' : 'Información Académica'); ?>,
                 fecha: <?php echo json_encode(date('d/m/Y H:i:s')); ?>,
                 id: <?php echo $id_reporte; ?>,
                 columnas: <?php echo json_encode($columnas); ?>,
                 resultados: <?php echo json_encode($resultados); ?>
             };
+            
+            console.log("=== DEPURACIÓN JAVASCRIPT ===");
+            console.log("Reporte Data:", reporteData);
+            console.log("Columnas:", reporteData.columnas);
+            console.log("Resultados:", reporteData.resultados);
+            console.log("Número de resultados:", reporteData.resultados.length);
             
             // Mapeo de nombres de columnas
             const columnasDisponibles = {
@@ -448,12 +465,118 @@ function obtenerValorMostrarPDF($valor) {
                 const data = reporteData.resultados.map(fila => 
                     reporteData.columnas.map(col => {
                         let valor = fila[col] || '';
-                        if (col === 'fecha_nacimiento' && valor) {
+                        
+                        // Optimizar el formato de nombres y apellidos
+                        if (col === 'nombres' || col === 'apellido_paterno' || col === 'apellido_materno') {
+                            // Eliminar espacios extra y normalizar
+                            valor = valor.toString().trim().replace(/\s+/g, ' ');
+                            // Para nombres muy largos, usar abreviaturas inteligentes
+                            if (valor.length > 25) {
+                                const palabras = valor.split(' ');
+                                if (palabras.length > 2) {
+                                    // Mantener primeras palabras intactas y abreviar el resto
+                                    valor = palabras.slice(0, 2).join(' ') + ' ' + 
+                                           palabras.slice(2).map(p => p.charAt(0) + '.').join(' ');
+                                } else if (palabras.length === 2 && palabras[1].length > 15) {
+                                    // Si el segundo apellido es muy largo, abreviarlo
+                                    valor = palabras[0] + ' ' + palabras[1].charAt(0) + '.';
+                                }
+                                // Si aún es muy largo, truncar
+                                if (valor.length > 30) {
+                                    valor = valor.substring(0, 28) + '...';
+                                }
+                            }
+                        } else if (col === 'nombre_completo') {
+                            // Combinar nombres y apellidos de forma optimizada
+                            const nombres = (fila['nombres'] || '').toString().trim().replace(/\s+/g, ' ');
+                            const apPaterno = (fila['apellido_paterno'] || '').toString().trim().replace(/\s+/g, ' ');
+                            const apMaterno = (fila['apellido_materno'] || '').toString().trim().replace(/\s+/g, ' ');
+                            
+                            // Construir nombre completo de forma compacta
+                            let nombreCompleto = `${nombres} ${apPaterno} ${apMaterno}`.trim().replace(/\s+/g, ' ');
+                            
+                            // Optimizar espacio para nombres completos muy largos
+                            if (nombreCompleto.length > 35) {
+                                const palabras = nombreCompleto.split(' ');
+                                if (palabras.length > 4) {
+                                    // Abreviar apellidos si hay demasiadas palabras
+                                    nombreCompleto = palabras.slice(0, 2).join(' ') + ' ' + 
+                                                     palabras.slice(2).map(p => p.charAt(0) + '.').join(' ');
+                                } else if (palabras.length === 4) {
+                                    // Formato: Nombre Apellido1 A.
+                                    nombreCompleto = palabras[0] + ' ' + palabras[1] + ' ' + 
+                                                     palabras.slice(2).map(p => p.charAt(0) + '.').join(' ');
+                                }
+                            }
+                            
+                            // Truncar si aún es muy largo
+                            if (nombreCompleto.length > 40) {
+                                nombreCompleto = nombreCompleto.substring(0, 38) + '...';
+                            }
+                            
+                            valor = nombreCompleto;
+                        } else if (col === 'fecha_nacimiento' && valor) {
                             valor = new Date(valor).toLocaleDateString('es-ES');
                         }
+                        
                         return valor;
                     })
                 );
+                
+                // Calcular anchos de columna responsivos
+                const totalWidth = doc.internal.pageSize.width - 80; // 40 margen izquierdo + 40 derecho
+                const columnCount = reporteData.columnas.length;
+                
+                // Definir anchos mínimos y preferidos para cada tipo de columna
+                const columnWidths = {};
+                let remainingWidth = totalWidth;
+                let fixedColumns = 0;
+                
+                // Asignar anchos fijos para columnas específicas
+                reporteData.columnas.forEach((col, index) => {
+                    if (col === 'id_estudiante') {
+                        columnWidths[index] = 40; // ID muy estrecho
+                        fixedColumns++;
+                    } else if (col === 'edad') {
+                        columnWidths[index] = 30; // Edad muy estrecho
+                        fixedColumns++;
+                    } else if (col === 'genero') {
+                        columnWidths[index] = 35; // Género estrecho
+                        fixedColumns++;
+                    } else if (col === 'nivel' || col === 'curso' || col === 'paralelo') {
+                        columnWidths[index] = 45; // Columnas de curso/paralelo
+                        fixedColumns++;
+                    }
+                });
+                
+                // Calcular el ancho restante para las columnas de texto
+                const fixedWidthTotal = Object.values(columnWidths).reduce((a, b) => a + b, 0);
+                const flexibleColumns = columnCount - fixedColumns;
+                const flexibleWidth = flexibleColumns > 0 ? (remainingWidth - fixedWidthTotal) / flexibleColumns : 0;
+                
+                // Asignar anchos finales
+                const finalColumnStyles = {};
+                reporteData.columnas.forEach((col, index) => {
+                    if (columnWidths[index]) {
+                        finalColumnStyles[index] = { cellWidth: columnWidths[index] };
+                    } else {
+                        // Para columnas de texto como nombres, apellidos, etc.
+                        let cellWidth = flexibleWidth;
+                        
+                        // Dar más espacio a nombres y apellidos
+                        if (col === 'nombres' || col === 'nombre_completo') {
+                            cellWidth = Math.max(flexibleWidth * 1.5, 80);
+                        } else if (col === 'apellido_paterno' || col === 'apellido_materno') {
+                            cellWidth = Math.max(flexibleWidth * 1.2, 70);
+                        } else if (col === 'carnet_identidad' || col === 'rude') {
+                            cellWidth = Math.max(flexibleWidth * 0.8, 60);
+                        } else if (col === 'fecha_nacimiento') {
+                            cellWidth = Math.max(flexibleWidth * 0.9, 65);
+                        }
+                        
+                        finalColumnStyles[index] = { cellWidth: cellWidth };
+                    }
+                });
                 
                 doc.autoTable({
                     head: [headers],
@@ -462,10 +585,14 @@ function obtenerValorMostrarPDF($valor) {
                     theme: 'striped',
                     styles: {
                         fontSize: 9,
-                        cellPadding: 5,
+                        cellPadding: 4, // Reducir padding para más espacio
                         font: 'helvetica',
                         lineColor: [189, 195, 199],
-                        textColor: [52, 73, 94]
+                        textColor: [52, 73, 94],
+                        overflow: 'linebreak', // Permitir salto de línea si es necesario
+                        cellWidth: 'auto',
+                        valign: 'middle', // Alinear verticalmente al centro
+                        halign: 'left' // Alinear horizontalmente a la izquierda
                     },
                     headStyles: {
                         fillColor: [44, 62, 80],
@@ -479,8 +606,45 @@ function obtenerValorMostrarPDF($valor) {
                         fillColor: [236, 240, 241]
                     },
                     margin: { left: 40, right: 40 },
-                    columnStyles: {
-                        0: { cellWidth: 50, fontStyle: 'bold' } // ID Estudiante más estrecho y en negrita
+                    columnStyles: finalColumnStyles,
+                    didParseCell: function(data) {
+                        // Ajustar tamaño de fuente para textos largos
+                        if (data.column.index !== undefined) {
+                            const colName = reporteData.columnas[data.column.index];
+                            const text = data.cell.text;
+                            const textLength = text ? text.toString().length : 0;
+                            
+                            // Ajustar fuente según longitud del texto y tipo de columna
+                            if (colName === 'nombres' || colName === 'nombre_completo') {
+                                if (textLength > 35) {
+                                    data.cell.styles.fontSize = 7;
+                                } else if (textLength > 25) {
+                                    data.cell.styles.fontSize = 8;
+                                }
+                            } else if (colName === 'apellido_paterno' || colName === 'apellido_materno') {
+                                if (textLength > 30) {
+                                    data.cell.styles.fontSize = 7;
+                                } else if (textLength > 20) {
+                                    data.cell.styles.fontSize = 8;
+                                }
+                            } else if (colName === 'carnet_identidad' || colName === 'rude') {
+                                if (textLength > 20) {
+                                    data.cell.styles.fontSize = 8;
+                                }
+                            } else if (textLength > 25) {
+                                // Para cualquier otra columna con texto largo
+                                data.cell.styles.fontSize = 8;
+                            }
+                            
+                            // Alinear mejor el contenido según el tipo de dato
+                            if (colName === 'edad' || colName === 'id_estudiante') {
+                                data.cell.styles.halign = 'center';
+                            } else if (colName === 'genero') {
+                                data.cell.styles.halign = 'center';
+                            } else if (colName === 'fecha_nacimiento') {
+                                data.cell.styles.halign = 'center';
+                            }
+                        }
                     },
                     didDrawPage: function (data) {
                         // Pie de página elegante
