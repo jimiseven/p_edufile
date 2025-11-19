@@ -110,6 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtEstudiante->bindParam(':id_responsable', $id_responsable, PDO::PARAM_INT);
         
         $stmtEstudiante->execute();
+        $id_estudiante = $conn->lastInsertId();
 
         // Guardar información secundaria (opcional)
         guardarInformacionSecundaria($conn, $id_estudiante, $_POST);
@@ -139,7 +140,7 @@ function guardarInformacionSecundaria($conn, $id_estudiante, $postData) {
     try {
         // Dirección
         if (!empty($postData['dir_departamento']) || !empty($postData['dir_zona']) || !empty($postData['dir_telefono'])) {
-            $sql = "INSERT INTO estudiante_direccion (id_estudiante, departamento, provincia, municipio, localidad, comunidad, zona, numero_vivienda, telefono_casa, celular) 
+            $sql = "INSERT INTO estudiante_direccion (id_estudiante, departamento, provincia, municipio, localidad, comunidad, zona, numero_vivienda, telefono, celular) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
             $stmt->execute([
@@ -197,12 +198,12 @@ function guardarInformacionSecundaria($conn, $id_estudiante, $postData) {
 
         // Servicios
         $servicios = [
-            'agua_caneria' => $postData['serv_agua_caneria'] ?? 'No',
-            'bano' => $postData['serv_bano'] ?? 'No',
-            'alcantarillado' => $postData['serv_alcantarillado'] ?? 'No',
-            'internet' => $postData['serv_internet'] ?? 'No',
-            'energia' => $postData['serv_energia'] ?? 'No',
-            'recojo_basura' => $postData['serv_recojo_basura'] ?? 'No',
+            'agua_caneria' => $postData['serv_agua_caneria'] ?? '0',
+            'bano' => $postData['serv_bano'] ?? '0',
+            'alcantarillado' => $postData['serv_alcantarillado'] ?? '0',
+            'internet' => $postData['serv_internet'] ?? '0',
+            'energia' => $postData['serv_energia'] ?? '0',
+            'recojo_basura' => $postData['serv_recojo_basura'] ?? '0',
             'tipo_vivienda' => $postData['serv_tipo_vivienda'] ?? null
         ];
         
@@ -222,7 +223,7 @@ function guardarInformacionSecundaria($conn, $id_estudiante, $postData) {
         ]);
 
         // Actividad Laboral
-        if (!empty($postData['lab_trabajo']) && $postData['lab_trabajo'] === 'Si') {
+        if (!empty($postData['lab_trabajo']) && $postData['lab_trabajo'] === '1') {
             $meses_trabajo = isset($postData['lab_meses_trabajo']) ? implode(',', $postData['lab_meses_trabajo']) : '';
             $sql = "INSERT INTO estudiante_actividad_laboral (id_estudiante, trabajo, meses_trabajo, actividad, 
                     turno_manana, turno_tarde, turno_noche, frecuencia) 
@@ -233,9 +234,9 @@ function guardarInformacionSecundaria($conn, $id_estudiante, $postData) {
                 $postData['lab_trabajo'],
                 $meses_trabajo,
                 $postData['lab_actividad'] ?? null,
-                $postData['lab_turno_manana'] ?? 'No',
-                $postData['lab_turno_tarde'] ?? 'No',
-                $postData['lab_turno_noche'] ?? 'No',
+                $postData['lab_turno_manana'] ?? '0',
+                $postData['lab_turno_tarde'] ?? '0',
+                $postData['lab_turno_noche'] ?? '0',
                 $postData['lab_frecuencia'] ?? null
             ]);
         }
@@ -259,7 +260,7 @@ function guardarInformacionSecundaria($conn, $id_estudiante, $postData) {
         }
 
         // Abandono
-        if (!empty($postData['aba_abandono']) && $postData['aba_abandono'] === 'Si') {
+        if (!empty($postData['aba_abandono']) && $postData['aba_abandono'] === '1') {
             $sql = "INSERT INTO estudiante_abandono (id_estudiante, abandono, motivo) 
                     VALUES (?, ?, ?)";
             $stmt = $conn->prepare($sql);
