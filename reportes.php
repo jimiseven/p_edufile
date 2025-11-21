@@ -1,3 +1,17 @@
+<?php
+session_start();
+$mensaje_reporte = '';
+
+if (isset($_SESSION['mensaje_reporte'])) {
+    $mensaje_reporte = $_SESSION['mensaje_reporte'];
+    unset($_SESSION['mensaje_reporte']);
+} elseif (isset($_GET['reporte_creado']) && $_GET['reporte_creado'] == '1') {
+    $mensaje_reporte = '<div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>¡Reporte creado correctamente!</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>';
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -22,6 +36,7 @@
 <body>
 
     <div class="container-fluid my-4">
+        <?php if (!empty($mensaje_reporte)) echo $mensaje_reporte; ?>
         <h1 class="text-center mb-4">Generador de Reportes Dinámicos</h1>
 
         <div class="row">

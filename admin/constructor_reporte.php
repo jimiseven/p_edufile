@@ -148,6 +148,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             // Guardar mensaje en sesión para que persista después de redirección
             $_SESSION['mensaje_reporte'] = $mensaje_reporte;
+            // Mensaje para la página de listado de reportes
+            $_SESSION['mensaje'] = 'Reporte ' . ($id_reporte_editar_post ? 'actualizado' : 'guardado') . ' exitosamente: ' . ($nombre_reporte ?: ('ID ' . $resultado['id_reporte']));
+            $_SESSION['tipo_mensaje'] = 'success';
             
             $reporte_generado = true;
             // Mantener datos temporales para mostrar resultados después de guardar
@@ -160,6 +163,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 'columnas_orden' => $columnas_orden,
                 'tipo_base' => $tipo_base
             ];
+
+            // Redirigir a la página de reportes después de guardar correctamente
+            header('Location: reportes.php');
+            exit();
         } else {
             $mensaje_reporte = '<div class="alert alert-danger">
                 <i class="fas fa-exclamation-triangle me-2"></i>
