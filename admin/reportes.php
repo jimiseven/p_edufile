@@ -179,6 +179,56 @@ $conn = $db->connect();
                 font-size: 0.8rem;
             }
         }
+
+        /* Sidebar fijo - que no se mueva */
+        .sidebar {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 1050 !important; /* z-index alto para estar siempre encima */
+            overflow-y: auto;
+        }
+
+        /* Asegurar que ningún elemento se sobreponga al sidebar */
+        .position-sticky, .sticky-top {
+            z-index: 900 !important;
+        }
+
+        .position-fixed, .fixed-top {
+            z-index: 1001 !important; /* Por debajo del sidebar */
+        }
+
+        /* Ajustar el contenido principal para que no quede detrás del sidebar */
+        @media (min-width: 992px) {
+            /* Para pantallas lg y mayores - sidebar col-lg-2 = 16.67% */
+            main.col-md-9.ms-sm-auto.col-lg-10 {
+                margin-left: 16.67% !important;
+                width: calc(100% - 16.67%) !important;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            /* Para pantallas md - sidebar col-md-3 = 25% */
+            main.col-md-9.ms-sm-auto.col-lg-10 {
+                margin-left: 25% !important;
+                width: calc(100% - 25%) !important;
+            }
+        }
+
+        /* Para móviles, ajustar el sidebar */
+        @media (max-width: 767.98px) {
+            .sidebar {
+                position: relative !important;
+                height: auto;
+                width: 100% !important;
+            }
+            
+            main.col-md-9.ms-sm-auto.col-lg-10 {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+        }
     </style>
 </head>
 

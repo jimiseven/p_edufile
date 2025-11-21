@@ -679,11 +679,6 @@ $secundaria_materias_pendientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
-        // Inicializar Feather Icons
-        if (typeof feather !== 'undefined') {
-            feather.replace();
-        }
-
         // Función para fijar el sidebar
         function fixSidebar() {
             const sidebar = document.getElementById('sidebarMenu');

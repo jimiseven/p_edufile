@@ -107,11 +107,6 @@ function active($str, $current)
             transition: border .15s;
         }
 
-        .sidebar-search-input:focus {
-            border-color: #4abff9;
-            outline: none;
-        }
-
         .sidebar-section-title {
             padding: 0.45rem 1.2rem 0.3rem 1.2rem;
             font-weight: 600;
@@ -119,6 +114,18 @@ function active($str, $current)
             margin-top: 15px;
             margin-bottom: 2px;
             border-left: 3px solid #4abff9;
+            cursor: pointer;
+        }
+
+        .sidebar-group-list {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease-out;
+        }
+
+        .sidebar-group-list.sidebar-group-open {
+            max-height: 600px;
+            transition: max-height 0.25s ease-in;
         }
 
         .nav-link {
@@ -352,6 +359,35 @@ function active($str, $current)
     </div>
     <script>
         if (window.feather) feather.replace();
+
+        // Despliegue de submenús al hacer clic en el título de sección
+        document.addEventListener('DOMContentLoaded', function () {
+            var titles = document.querySelectorAll('#sidebarMenu .sidebar-section-title');
+            titles.forEach(function (title) {
+                var group = title.nextElementSibling;
+                if (!group || !group.classList.contains('sidebar-group-list')) return;
+
+                // Abrir el grupo del módulo actual (si alguna opción está activa)
+                if (group.querySelector('.nav-link.active')) {
+                    group.classList.add('sidebar-group-open');
+                }
+
+                title.addEventListener('click', function () {
+                    var isOpen = group.classList.contains('sidebar-group-open');
+
+                    // Cerrar todos los grupos
+                    document.querySelectorAll('#sidebarMenu .sidebar-group-list').forEach(function (ul) {
+                        ul.classList.remove('sidebar-group-open');
+                    });
+
+                    // Si antes estaba cerrado, volver a abrirlo
+                    if (!isOpen) {
+                        group.classList.add('sidebar-group-open');
+                    }
+                });
+            });
+        });
+
     </script>
 </nav>
 
