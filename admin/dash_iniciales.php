@@ -10,14 +10,25 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 1) {
 
 $conn = (new Database())->connect();
 
-// Obtener cursos iniciales
+// Obtener todos los cursos de inicial con datos de estudiantes
 $stmt = $conn->query("
-    SELECT c.id_curso, c.curso, c.paralelo
+    SELECT c.id_curso, c.curso, c.paralelo,
+           COUNT(e.id_estudiante) as total_estudiantes,
+           SUM(CASE WHEN e.genero = 'Masculino' THEN 1 ELSE 0 END) as hombres,
+           SUM(CASE WHEN e.genero = 'Femenino' THEN 1 ELSE 0 END) as mujeres
     FROM cursos c
+    LEFT JOIN estudiantes e ON c.id_curso = e.id_curso
     WHERE c.nivel = 'Inicial'
+    GROUP BY c.id_curso, c.curso, c.paralelo
     ORDER BY c.curso, c.paralelo
 ");
 $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Calcular totales generales
+$total_cursos = count($cursos);
+$total_estudiantes = array_sum(array_column($cursos, 'total_estudiantes'));
+$total_hombres = array_sum(array_column($cursos, 'hombres'));
+$total_mujeres = array_sum(array_column($cursos, 'mujeres'));
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -28,7 +39,30 @@ $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <link id="bootstrap-css" rel="stylesheet" href="../css/bootstrap.min.css">
     <style>
         /* ---- DARK MODE ---- */
-        body { background-color: #181a1b; color: #eaeaea; }
+        body, html {
+            height: 100%;
+            background-color: #181a1b;
+            color: #eaeaea;
+            overflow-x: hidden;
+        }
+        
+        .container-fluid, .row {
+            height: 100%;
+        }
+        
+        .sidebar {
+            background: #19202a;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+        }
+
+        main {
+            background: #181a1b;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
         .content-wrapper {
             background: var(--content-bg, #1f1f1f);
             border-radius: 10px;
@@ -89,6 +123,17 @@ $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
         .toggle-switch input[type="checkbox"]:checked::after { left: 14px; }
 
+        /* Mantener estilos limpios del botón de cerrar sesión */
+        .sidebar-logout .nav-link {
+            background: linear-gradient(90deg, #0ba360 0%, #3cba92 100%);
+            color: #fff !important;
+            font-weight: 500;
+            border-radius: 6px;
+            padding: 0.55rem;
+            width: 72%;
+            font-size: 0.82rem;
+        }
+
         /* ---- LIGHT MODE ---- */
         body:not(.dark-mode) {
             --content-bg: #fff;
@@ -113,6 +158,151 @@ $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             border-left: 6px solid #1877c9;
         }
         body:not(.dark-mode) .toggle-switch label { color: #1877c9; }
+
+        /* Estilos minimalistas para las tarjetas de resumen */
+        .summary-cards {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .summary-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            flex: 1;
+            min-width: 200px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .summary-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-card .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 4px;
+            line-height: 1;
+        }
+
+        .summary-card .label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-card .gender-breakdown {
+            text-align: left;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .summary-card .gender-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 0.875rem;
+        }
+
+        .summary-card .gender-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .summary-card .gender-row .gender-label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .summary-card .gender-row .gender-count {
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        /* Modo oscuro para las tarjetas */
+        body.dark-mode .summary-card {
+            background: #1f2937;
+            border-color: #374151;
+        }
+
+        body.dark-mode .summary-card .number {
+            color: #f9fafb;
+        }
+
+        body.dark-mode .summary-card .label {
+            color: #9ca3af;
+        }
+
+        body.dark-mode .summary-card .gender-breakdown {
+            border-top-color: #374151;
+        }
+
+        body.dark-mode .summary-card .gender-row .gender-label {
+            color: #9ca3af;
+        }
+
+        body.dark-mode .summary-card .gender-row .gender-count {
+            color: #f9fafb;
+        }
+
+        /* Estilos para el modal de cierre de sesión */
+        .modal-content {
+            background-color: #fff !important;
+            color: #000 !important;
+        }
+
+        .modal-header {
+            background-color: #f8f9fa !important;
+            border-bottom: 1px solid #dee2e6 !important;
+        }
+
+        .modal-title {
+            color: #212529 !important;
+            font-weight: 600;
+        }
+
+        .modal-body {
+            color: #495057 !important;
+            font-size: 1rem;
+        }
+
+        .modal-footer {
+            background-color: #f8f9fa !important;
+            border-top: 1px solid #dee2e6 !important;
+        }
+
+        .modal-footer .btn {
+            color: #fff !important;
+        }
+
+        .modal-footer .btn-outline-secondary {
+            color: #6c757d !important;
+            background-color: transparent !important;
+        }
+
+        .modal-footer .btn-outline-secondary:hover {
+            color: #fff !important;
+            background-color: #6c757d !important;
+        }
+
+        .modal-footer .btn-primary {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+        }
+
+        .btn-close {
+            filter: none !important;
+            opacity: 1 !important;
+        }
     </style>
 </head>
 <body>
@@ -131,6 +321,30 @@ $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="title-box mb-4">
                         <h2 class="mb-0" style="color:#4682B4;">Cursos de Nivel Inicial</h2>
                         <small class="text-secondary">Seleccione el curso que desea visualizar:</small>
+                    </div>
+
+                    <!-- Tarjetas de Resumen -->
+                    <div class="summary-cards">
+                        <div class="summary-card">
+                            <div class="number"><?php echo $total_cursos; ?></div>
+                            <div class="label">Total cursos</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="number"><?php echo $total_estudiantes; ?></div>
+                            <div class="label">Total estudiantes</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="gender-breakdown">
+                                <div class="gender-row">
+                                    <span class="gender-label">Hombres</span>
+                                    <span class="gender-count"><?php echo $total_hombres; ?></span>
+                                </div>
+                                <div class="gender-row">
+                                    <span class="gender-label">Mujeres</span>
+                                    <span class="gender-count"><?php echo $total_mujeres; ?></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Tabla de Cursos -->

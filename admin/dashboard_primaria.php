@@ -39,9 +39,29 @@ $total_mujeres = array_sum(array_column($cursos, 'mujeres'));
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link id="bootstrap-css" rel="stylesheet" href="../css/bootstrap.min.css">
     <style>
-        body {
+        body, html {
+            height: 100%;
             background-color: #181a1b;
             color: #eaeaea;
+            overflow-x: hidden;
+        }
+        
+        .container-fluid, .row {
+            height: 100%;
+        }
+        
+        .sidebar {
+            background: #19202a;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+        }
+
+        main {
+            background: #181a1b;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 1.5rem;
         }
 
         .content-wrapper {
@@ -140,6 +160,17 @@ $total_mujeres = array_sum(array_column($cursos, 'mujeres'));
             left: 14px;
         }
 
+        /* Mantener estilos del botón de cerrar sesión consistentes */
+        .sidebar-logout .nav-link {
+            background: linear-gradient(90deg, #0ba360 0%, #3cba92 100%);
+            color: #fff !important;
+            font-weight: 500;
+            border-radius: 6px;
+            padding: 0.55rem;
+            width: 72%;
+            font-size: 0.82rem;
+        }
+
         /* ---- LIGHT MODE ---- */
         body:not(.dark-mode) {
             --content-bg: #fff;
@@ -158,21 +189,6 @@ $total_mujeres = array_sum(array_column($cursos, 'mujeres'));
             background: #1877c9;
             color: #fff;
         }
-
-        body:not(.dark-mode) .btn-centralizador:hover {
-            background: #0056b3;
-            color: #e3f2fd;
-        }
-
-        body:not(.dark-mode) .title-box {
-            border-left: 6px solid #1877c9;
-        }
-
-        body:not(.dark-mode) .toggle-switch label {
-            color: #1877c9;
-        }
-
-        /* Estilos para las tarjetas de resumen */
         .summary-cards {
             display: flex;
             gap: 20px;
@@ -182,56 +198,156 @@ $total_mujeres = array_sum(array_column($cursos, 'mujeres'));
 
         .summary-card {
             background: #fff;
-            border: 2px solid #000;
+            border: 1px solid #e5e7eb;
             border-radius: 8px;
-            padding: 20px;
+            padding: 24px;
             text-align: center;
             flex: 1;
             min-width: 200px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .summary-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-card .icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            opacity: 0.7;
         }
 
         .summary-card .number {
             font-size: 2.5rem;
-            font-weight: bold;
-            color: #000;
-            margin-bottom: 5px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 4px;
+            line-height: 1;
         }
 
         .summary-card .label {
-            font-size: 1rem;
-            font-weight: bold;
-            color: #000;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .summary-card .gender-breakdown {
             text-align: left;
-            margin-top: 10px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #f3f4f6;
         }
 
         .summary-card .gender-row {
             display: flex;
             justify-content: space-between;
-            font-weight: bold;
-            margin-bottom: 5px;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 0.875rem;
+        }
+
+        .summary-card .gender-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .summary-card .gender-row .gender-label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .summary-card .gender-row .gender-count {
+            color: #1f2937;
+            font-weight: 600;
         }
 
         /* Modo oscuro para las tarjetas */
         body.dark-mode .summary-card {
-            background: #2a2a2a;
-            border-color: #555;
-            color: #eaeaea;
+            background: #1f2937;
+            border-color: #374151;
         }
 
-        body.dark-mode .summary-card .number,
-        body.dark-mode .summary-card .label,
-        body.dark-mode .summary-card .gender-row {
-            color: #000;
+        body.dark-mode .summary-card .number {
+            color: #f9fafb;
         }
 
-        /* Forzar texto negro en las tarjetas de género */
-        .summary-card .gender-row {
+        body.dark-mode .summary-card .label {
+            color: #9ca3af;
+        }
+
+        body.dark-mode .summary-card .gender-breakdown {
+            border-top-color: #374151;
+        }
+
+        body.dark-mode .summary-card .gender-row .gender-label {
+            color: #9ca3af;
+        }
+
+        body.dark-mode .summary-card .gender-row .gender-count {
+            color: #f9fafb;
+        }
+
+        /* Estilos para botones de acción */
+        .btn-action {
+            margin-left: 5px;
+            font-size: 0.875rem;
+            padding: 6px 12px;
+        }
+
+        .btn-action i {
+            font-size: 0.875rem;
+        }
+
+        /* Estilos para el modal de cierre de sesión */
+        .modal-content {
+            background-color: #fff !important;
             color: #000 !important;
+        }
+
+        .modal-header {
+            background-color: #f8f9fa !important;
+            border-bottom: 1px solid #dee2e6 !important;
+        }
+
+        .modal-title {
+            color: #212529 !important;
+            font-weight: 600;
+        }
+
+        .modal-body {
+            color: #495057 !important;
+            font-size: 1rem;
+        }
+
+        .modal-footer {
+            background-color: #f8f9fa !important;
+            border-top: 1px solid #dee2e6 !important;
+        }
+
+        .modal-footer .btn {
+            color: #fff !important;
+        }
+
+        .modal-footer .btn-outline-secondary {
+            color: #6c757d !important;
+            background-color: transparent !important;
+        }
+
+        .modal-footer .btn-outline-secondary:hover {
+            color: #fff !important;
+            background-color: #6c757d !important;
+        }
+
+        .modal-footer .btn-primary {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+        }
+
+        .btn-close {
+            filter: none !important;
+            opacity: 1 !important;
         }
     </style>
 </head>
@@ -245,13 +361,9 @@ $total_mujeres = array_sum(array_column($cursos, 'mujeres'));
 
                 <!-- Toggle Modo Claro/Oscuro -->
                 <div class="toggle-switch">
-
                     <label for="toggleMode">☀️/🌙</label>
                     <input type="checkbox" id="toggleMode" <?php if (isset($_COOKIE['darkmode']) && $_COOKIE['darkmode'] == 'on') echo "checked"; ?>>
                 </div>
-                <button onclick="generateAllCentralizadores()" class="btn btn-primary">
-                    <i class="bi bi-file-earmark-pdf"></i> Exportar Centralizadores
-                </button>
                 <div class="content-wrapper">
                     <!-- Título Principal -->
                     <div class="title-box mb-4">
@@ -272,12 +384,12 @@ $total_mujeres = array_sum(array_column($cursos, 'mujeres'));
                         <div class="summary-card">
                             <div class="gender-breakdown">
                                 <div class="gender-row">
-                                    <span>Hombres</span>
-                                    <span><?php echo $total_hombres; ?></span>
+                                    <span class="gender-label">Hombres</span>
+                                    <span class="gender-count"><?php echo $total_hombres; ?></span>
                                 </div>
                                 <div class="gender-row">
-                                    <span>Mujeres</span>
-                                    <span><?php echo $total_mujeres; ?></span>
+                                    <span class="gender-label">Mujeres</span>
+                                    <span class="gender-count"><?php echo $total_mujeres; ?></span>
                                 </div>
                             </div>
                         </div>
@@ -293,7 +405,7 @@ $total_mujeres = array_sum(array_column($cursos, 'mujeres'));
                                     <th style="width: 80px;">Total</th>
                                     <th style="width: 80px;">Hombres</th>
                                     <th style="width: 80px;">Mujeres</th>
-                                    <th style="width: 120px;">Centralizador</th>
+                                    <th style="width: 200px;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -317,6 +429,10 @@ $total_mujeres = array_sum(array_column($cursos, 'mujeres'));
                                             <td>
                                                 <a href="ver_curso.php?id=<?php echo $curso['id_curso']; ?>" class="btn btn-centralizador">
                                                     VER
+                                                </a>
+                                                <a href="boletin_primaria.php?id_curso=<?= $curso['id_curso'] ?>"
+                                                    class="btn btn-success btn-action">
+                                                    <i class="ri-printer-line"></i> Boletín
                                                 </a>
                                             </td>
                                         </tr>
@@ -353,148 +469,7 @@ $total_mujeres = array_sum(array_column($cursos, 'mujeres'));
             }
         }
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script>
-        async function generateAllCentralizadores() {
-            const processingMsg = document.createElement('div');
-            processingMsg.innerHTML = '<div class="alert alert-info position-fixed top-50 start-50 translate-middle p-4" style="z-index:9999"><div class="spinner-border me-2" role="status"></div> Generando centralizadores...</div>';
-            document.body.appendChild(processingMsg);
-
-            try {
-                // CAMBIO 1: formato y ancho de página legal landscape
-                const pdf = new jspdf.jsPDF({
-                    orientation: 'landscape',
-                    unit: 'mm',
-                    format: 'legal'
-                });
-
-                // Tamaño legal landscape: 355.6mm x 215.9mm
-                const legalWidth = pdf.internal.pageSize.getWidth(); // ≈355.6
-                const legalHeight = pdf.internal.pageSize.getHeight(); // ≈215.9
-
-                const cursos = <?= json_encode($cursos) ?>;
-                let isFirstPage = true;
-
-                for (let i = 0; i < cursos.length; i++) {
-                    processingMsg.innerHTML = `<div class="alert alert-info position-fixed top-50 start-50 translate-middle p-4" style="z-index:9999">
-                <div class="spinner-border me-2" role="status"></div> Procesando centralizador ${i + 1} de ${cursos.length}</div>`;
-
-                    const curso = cursos[i];
-
-                    // Iframe oculto
-                    const iframe = document.createElement('iframe');
-                    iframe.style.position = 'fixed';
-                    iframe.style.left = '-1800px';
-                    iframe.style.top = '0';
-                    iframe.style.width = '1540px'; // más ancho para legal
-                    iframe.style.height = '1200px';
-                    iframe.src = `ver_curso.php?id=${curso.id_curso}`;
-                    document.body.appendChild(iframe);
-
-                    await new Promise(resolve => iframe.onload = resolve);
-                    await new Promise(resolve => setTimeout(resolve, 900));
-
-                    const tableContainer = iframe.contentDocument.querySelector('.table-responsive');
-                    const courseTitle = `Curso: ${curso.curso} | Paralelo: "${curso.paralelo}"`;
-
-                    // Contenedor de PDF, más ancho
-                    const pdfContent = document.createElement('div');
-                    pdfContent.style.background = '#fff';
-                    pdfContent.style.padding = '5px 8px 4px 8px';
-                    pdfContent.style.width = '1500px';
-                    pdfContent.style.boxSizing = 'border-box';
-
-                    pdfContent.innerHTML = `
-                <div style="text-align:center;margin-bottom:4px;font-family:Arial,sans-serif;">
-                    <div style="font-size:12pt; font-weight:bold; color:#113366;">U.E. SIMÓN BOLÍVAR</div>
-                    <div style="font-size:10pt; font-weight:600; color:#003366;">CENTRALIZADOR DE NOTAS</div>
-                    <div style="font-size:10pt; margin-bottom:2px; color:#000; font-weight:bold;">
-                        ${courseTitle}
-                    </div>
-                    <div style="font-size:8pt;color:#555;">Año Escolar ${new Date().getFullYear()}</div>
-                </div>
-            `;
-
-                    if (tableContainer) {
-                        let clone = tableContainer.cloneNode(true);
-                        clone.style.fontSize = "7pt";
-                        clone.style.margin = "0 auto";
-                        clone.querySelectorAll('th,td').forEach(td => {
-                            td.style.fontSize = "7pt";
-                            td.style.whiteSpace = "nowrap";
-                            td.style.padding = "1.2px 2.4px";
-                            td.style.border = "1px solid #ccc";
-                            td.style.lineHeight = "1.09";
-                            if (!isNaN(td.textContent) && td.textContent.trim() !== '' && parseFloat(td.textContent) < 50) {
-                                td.style.color = "#b1001e";
-                                td.style.fontWeight = "bold";
-                                td.style.background = "#ffeaea";
-                            }
-                        });
-                        // Alternar fondo de columnas (materias)
-                        clone.querySelectorAll('tbody tr').forEach(tr => {
-                            let tdidx = 0;
-                            tr.querySelectorAll('td').forEach(td => {
-                                if (tdidx >= 2) {
-                                    let bgc = (Math.floor((tdidx - 2) / 4) % 2 === 0) ? "#f7f8fa" : "#f0f2f4";
-                                    td.style.background = bgc;
-                                }
-                                tdidx++;
-                            });
-                        });
-                        clone.querySelectorAll('tbody tr').forEach(tr => {
-                            let tds = tr.querySelectorAll('td');
-                            if (tds.length) {
-                                let last = tds[tds.length - 1];
-                                last.style.background = "#ffe6b7";
-                                last.style.fontWeight = "bold";
-                                last.style.color = "#865805";
-                            }
-                        });
-                        pdfContent.appendChild(clone);
-                    }
-
-                    document.body.appendChild(pdfContent);
-
-                    // MÁXIMA RESOLUCIÓN
-                    const canvas = await html2canvas(pdfContent, {
-                        scale: 3.5, // resolución más alta posible
-                        useCORS: true,
-                        backgroundColor: "#fff"
-                    });
-
-                    if (!isFirstPage) pdf.addPage();
-                    isFirstPage = false;
-
-                    // Ajuste a tamaño legal horizontal
-                    const marginX = 12,
-                        marginY = 10;
-                    const pageWidth = legalWidth - marginX * 2;
-                    const pageHeight = legalHeight - marginY * 2;
-                    let imgWidth = pageWidth,
-                        imgHeight = (canvas.height * imgWidth) / canvas.width;
-                    if (imgHeight > pageHeight) {
-                        imgHeight = pageHeight;
-                        imgWidth = (canvas.width * imgHeight) / canvas.height;
-                    }
-
-                    pdf.addImage(canvas, 'PNG', marginX, marginY, imgWidth, imgHeight);
-
-                    document.body.removeChild(pdfContent);
-                    document.body.removeChild(iframe);
-                }
-                pdf.save('Centralizadores_Primaria_Legal.pdf');
-            } catch (error) {
-                alert("Error generando PDF: " + error.message);
-            } finally {
-                document.body.removeChild(processingMsg);
-            }
-        }
-    </script>
     <script src="../js/bootstrap.bundle.min.js"></script>
-
-
 </body>
 
 </html>

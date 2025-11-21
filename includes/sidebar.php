@@ -199,7 +199,7 @@ function active($str, $current)
         <!-- Header -->
         <div class="sidebar-brand">
             <span class="logo-icon">E</span>
-            <span>EDUNOTE</span>
+            <span>EDUFILE</span>
         </div>
 
         <!-- Contenido principal del sidebar -->

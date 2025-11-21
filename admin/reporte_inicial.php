@@ -185,10 +185,12 @@ foreach ($reporte_data as $row) {
     </style>
 </head>
 <body>
-    <?php include '../includes/sidebar.php'; ?>
+    <div class="container-fluid g-0">
+        <div class="row g-0">
+            <?php include '../includes/sidebar.php'; ?>
 
-    <!-- Main content -->
-    <div class="main-content">
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="main-content">
         <div class="actions-bar">
             <div>
                 <h4 class="mb-1">Reporte de Asignaciones</h4>
@@ -240,6 +242,8 @@ foreach ($reporte_data as $row) {
             <div class="text-center mt-4 d-print-none">
                 <small class="text-muted">Total de cursos: <?= count($cursos_agrupados) ?></small>
             </div>
+        </div>
+            </main>
         </div>
     </div>
 
