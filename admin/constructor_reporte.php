@@ -705,6 +705,26 @@ function generarOpcionesSelect($array, $valor_key, $texto_key, $seleccionados = 
                 width: 100% !important;
             }
         }
+
+        /* Estilos para tabla ordenable */
+        #reportTable th.sortable {
+            position: relative;
+            padding-right: 25px;
+        }
+        
+        #reportTable th.sortable:hover {
+            background-color: #f8f9fa;
+        }
+        
+        #reportTable .sort-arrows {
+            margin-left: 5px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        #reportTable th.sortable:hover .sort-arrows i {
+            color: #007bff !important;
+        }
     </style>
 </head>
 
@@ -1169,9 +1189,40 @@ function generarOpcionesSelect($array, $valor_key, $texto_key, $seleccionados = 
             }
         }
 
-        // Función para descargar reporte temporal como Excel
+        // Función para descargar reporte temporal como Excel con orden actual
         function descargarPDF() {
-            window.location.href = 'download_temporal_report_excel.php';
+            // Capturar el orden actual de la tabla si existe
+            const tableBody = document.getElementById('reportTableBody');
+            let sortedData = [];
+            
+            if (tableBody) {
+                const rows = tableBody.querySelectorAll('tr');
+                rows.forEach((row, index) => {
+                    const rowData = [];
+                    const cells = row.querySelectorAll('td');
+                    cells.forEach(cell => {
+                        rowData.push(cell.dataset.value || cell.textContent.trim());
+                    });
+                    sortedData.push(rowData);
+                });
+            }
+            
+            // Crear formulario para enviar datos por POST
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'download_temporal_report_excel.php';
+            
+            // Agregar datos ordenados si existen
+            if (sortedData.length > 0) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'sorted_data';
+                input.value = JSON.stringify(sortedData);
+                form.appendChild(input);
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
         }
 
         // Validación básica del formulario

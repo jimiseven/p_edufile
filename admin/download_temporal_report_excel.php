@@ -26,16 +26,29 @@ try {
     $columnas = $temporal['columnas'];
     $tipo_base = $temporal['tipo_base'];
     
-    // Obtener el orden de columnas si existe
-    $columnas_orden = isset($_POST['columnas_orden']) ? $_POST['columnas_orden'] : [];
+    // Verificar si se enviaron datos ordenados desde el cliente
+    $sorted_data = isset($_POST['sorted_data']) ? json_decode($_POST['sorted_data'], true) : null;
     
-    // Construir consulta SQL
-    $consulta = construirConsultaSQL($filtros, $columnas, $tipo_base);
-    $stmt = $conn->prepare($consulta['sql']);
-    
-    // Ejecutar consulta con parámetros
-    $stmt->execute($consulta['params']);
-    $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Si hay datos ordenados, usarlos directamente
+    if ($sorted_data && is_array($sorted_data) && count($sorted_data) > 0) {
+        // Reconstruir resultados desde los datos ordenados
+        $resultados = [];
+        foreach ($sorted_data as $rowData) {
+            $row = [];
+            foreach ($columnas as $index => $columna) {
+                $row[$columna] = $rowData[$index] ?? '';
+            }
+            $resultados[] = $row;
+        }
+    } else {
+        // Si no hay datos ordenados, ejecutar consulta normal
+        $consulta = construirConsultaSQL($filtros, $columnas, $tipo_base);
+        $stmt = $conn->prepare($consulta['sql']);
+        
+        // Ejecutar consulta con parámetros
+        $stmt->execute($consulta['params']);
+        $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     
     // Verificar si se obtuvieron resultados
     if (empty($resultados)) {

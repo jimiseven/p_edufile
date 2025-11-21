@@ -14,14 +14,17 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 session_start();
 
 // Verificar si se proporcionó un ID de reporte
-if (!isset($_GET['id']) || empty($_GET['id'])) {
+$id_reporte = $_GET['id'] ?? $_POST['id'] ?? null;
+
+if (!$id_reporte || empty($id_reporte)) {
     header('Location: reportes.php?error=No se proporcionó un ID de reporte');
     exit;
 }
 
-$id_reporte = $_GET['id'];
-
 try {
+    // Verificar si se enviaron datos ordenados desde el cliente
+    $sorted_data = isset($_POST['sorted_data']) ? json_decode($_POST['sorted_data'], true) : null;
+    
     // Cargar datos del reporte guardado
     $reporte = cargarReporteGuardado($id_reporte);
     
@@ -32,9 +35,24 @@ try {
     
     // Extraer datos del nuevo formato
     $columnas = $reporte['columnas'];
-    $resultados = $reporte['resultados'];
     $filtros = $reporte['filtros'];
     $tipo_base = $reporte['tipo_base'];
+    
+    // Si hay datos ordenados, usarlos directamente
+    if ($sorted_data && is_array($sorted_data) && count($sorted_data) > 0) {
+        // Reconstruir resultados desde los datos ordenados
+        $resultados = [];
+        foreach ($sorted_data as $rowData) {
+            $row = [];
+            foreach ($columnas as $index => $columna) {
+                $row[$columna] = $rowData[$index] ?? '';
+            }
+            $resultados[] = $row;
+        }
+    } else {
+        // Si no hay datos ordenados, usar los resultados originales
+        $resultados = $reporte['resultados'];
+    }
     
     // Preparar datos para Excel
     $reporteData = [

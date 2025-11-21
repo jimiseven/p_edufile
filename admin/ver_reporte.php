@@ -359,8 +359,11 @@ $tipo_base = $reporte['tipo_base'];
                 <?php generarReporteHTML($filtros, $columnas, $tipo_base); ?>
             </div>
 
-            <!-- Botón de volver -->
-            <div class="mt-4">
+            <!-- Botones de acción -->
+            <div class="mt-4 d-flex gap-3">
+                <button onclick="descargarExcel(<?php echo $id_reporte; ?>)" class="btn btn-success">
+                    <i class="fas fa-file-excel me-2"></i>Descargar Excel
+                </button>
                 <a href="reportes.php" class="btn-back">
                     <i class="fas fa-arrow-left me-2"></i>Volver a Reportes
                 </a>
@@ -372,6 +375,49 @@ $tipo_base = $reporte['tipo_base'];
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Función para descargar Excel con orden actual de la tabla
+        function descargarExcel(idReporte) {
+            // Capturar el orden actual de la tabla si existe
+            const tableBody = document.getElementById('reportTableBody');
+            let sortedData = [];
+            
+            if (tableBody) {
+                const rows = tableBody.querySelectorAll('tr');
+                rows.forEach((row, index) => {
+                    const rowData = [];
+                    const cells = row.querySelectorAll('td');
+                    cells.forEach(cell => {
+                        rowData.push(cell.dataset.value || cell.textContent.trim());
+                    });
+                    sortedData.push(rowData);
+                });
+            }
+            
+            // Crear formulario para enviar datos por POST
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'download_report_excel.php';
+            
+            // Agregar ID del reporte
+            const inputId = document.createElement('input');
+            inputId.type = 'hidden';
+            inputId.name = 'id';
+            inputId.value = idReporte;
+            form.appendChild(inputId);
+            
+            // Agregar datos ordenados si existen
+            if (sortedData.length > 0) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'sorted_data';
+                input.value = JSON.stringify(sortedData);
+                form.appendChild(input);
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+        
         // Auto-refresh cada 30 segundos para datos en tiempo real
         setInterval(function() {
             location.reload();

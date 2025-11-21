@@ -607,7 +607,7 @@ function eliminarReporte($id_reporte) {
 }
 
 /**
- * Genera y muestra el reporte en una tabla HTML
+ * Genera y muestra el reporte en una tabla HTML con ordenamiento
  */
 function generarReporteHTML($filtros, $columnas, $tipo_base) {
     global $conn;
@@ -627,11 +627,11 @@ function generarReporteHTML($filtros, $columnas, $tipo_base) {
             return;
         }
         
-        // Generar tabla HTML
+        // Generar tabla HTML con ordenamiento
         echo '<div class="table-responsive">';
-        echo '<table class="table table-striped table-hover">';
+        echo '<table class="table table-striped table-hover" id="reportTable">';
         
-        // Encabezados
+        // Encabezados con flechas de ordenamiento
         echo '<thead><tr>';
         
         $columnas_disponibles = [
@@ -658,27 +658,41 @@ function generarReporteHTML($filtros, $columnas, $tipo_base) {
         $join_dificultades = false;
         
         if (!empty($columnas)) {
+            $col_index = 0;
             foreach ($columnas as $columna) {
-                echo '<th>' . htmlspecialchars($columnas_disponibles[$columna] ?? $columna) . '</th>';
+                $alias = htmlspecialchars($columnas_disponibles[$columna] ?? $columna);
+                echo '<th class="sortable" data-column="' . $col_index . '" data-field="' . htmlspecialchars($columna) . '" style="cursor: pointer; user-select: none;">';
+                echo $alias;
+                echo ' <span class="sort-arrows">';
+                echo '<i class="fas fa-sort" style="color: #ccc; font-size: 0.8em;"></i>';
+                echo '</span>';
+                echo '</th>';
+                $col_index++;
             }
         } else {
-            echo '<th>Nombres</th><th>Apellido Paterno</th><th>Apellido Materno</th>';
+            echo '<th class="sortable" data-column="0" style="cursor: pointer;">Nombres <span class="sort-arrows"><i class="fas fa-sort"></i></span></th>';
+            echo '<th class="sortable" data-column="1" style="cursor: pointer;">Apellido Paterno <span class="sort-arrows"><i class="fas fa-sort"></i></span></th>';
+            echo '<th class="sortable" data-column="2" style="cursor: pointer;">Apellido Materno <span class="sort-arrows"><i class="fas fa-sort"></i></span></th>';
         }
         
         echo '</tr></thead>';
         
         // Datos
-        echo '<tbody>';
+        echo '<tbody id="reportTableBody">';
         foreach ($resultados as $fila) {
             echo '<tr>';
             
             if (!empty($columnas)) {
                 foreach ($columnas as $columna) {
                     $valor = $fila[$columna] ?? '';
+                    $valor_original = $valor; // Guardar valor original para data-value
+                    
                     if ($columna == 'fecha_nacimiento' && $valor) {
                         $valor = date('d/m/Y', strtotime($valor));
                     }
-                    echo '<td>' . htmlspecialchars($valor) . '</td>';
+                    
+                    // Agregar data-value para ordenamiento correcto
+                    echo '<td data-value="' . htmlspecialchars($valor_original) . '">' . htmlspecialchars($valor) . '</td>';
                 }
             } else {
                 echo '<td>' . htmlspecialchars($fila['nombres'] ?? '') . '</td>';
@@ -698,6 +712,91 @@ function generarReporteHTML($filtros, $columnas, $tipo_base) {
         echo '<i class="fas fa-chart-bar me-2"></i>';
         echo 'Total de registros: ' . count($resultados);
         echo '</div>';
+        
+        // Agregar script de ordenamiento
+        echo '<script>
+        (function() {
+            const table = document.getElementById("reportTable");
+            if (!table) return;
+            
+            const headers = table.querySelectorAll("th.sortable");
+            let currentSort = { column: -1, ascending: true };
+            
+            headers.forEach(header => {
+                header.addEventListener("click", function() {
+                    const columnIndex = parseInt(this.dataset.column);
+                    const fieldName = this.dataset.field || "";
+                    
+                    // Determinar dirección de ordenamiento
+                    if (currentSort.column === columnIndex) {
+                        currentSort.ascending = !currentSort.ascending;
+                    } else {
+                        currentSort.column = columnIndex;
+                        currentSort.ascending = true;
+                    }
+                    
+                    // Actualizar iconos
+                    headers.forEach(h => {
+                        const icon = h.querySelector(".sort-arrows i");
+                        if (icon) {
+                            icon.className = "fas fa-sort";
+                            icon.style.color = "#ccc";
+                        }
+                    });
+                    
+                    const icon = this.querySelector(".sort-arrows i");
+                    if (icon) {
+                        icon.className = currentSort.ascending ? "fas fa-sort-up" : "fas fa-sort-down";
+                        icon.style.color = "#007bff";
+                    }
+                    
+                    // Ordenar tabla
+                    sortTable(columnIndex, currentSort.ascending, fieldName);
+                });
+            });
+            
+            function sortTable(columnIndex, ascending, fieldName) {
+                const tbody = document.getElementById("reportTableBody");
+                const rows = Array.from(tbody.querySelectorAll("tr"));
+                
+                rows.sort((a, b) => {
+                    const cellA = a.querySelectorAll("td")[columnIndex];
+                    const cellB = b.querySelectorAll("td")[columnIndex];
+                    
+                    if (!cellA || !cellB) return 0;
+                    
+                    // Usar data-value si existe, sino usar textContent
+                    let valueA = cellA.dataset.value || cellA.textContent.trim();
+                    let valueB = cellB.dataset.value || cellB.textContent.trim();
+                    
+                    // Ordenamiento especial para números
+                    if (fieldName === "edad" || fieldName === "id_estudiante" || fieldName === "curso") {
+                        valueA = parseFloat(valueA) || 0;
+                        valueB = parseFloat(valueB) || 0;
+                        return ascending ? valueA - valueB : valueB - valueA;
+                    }
+                    
+                    // Ordenamiento especial para fechas
+                    if (fieldName === "fecha_nacimiento") {
+                        const dateA = new Date(valueA);
+                        const dateB = new Date(valueB);
+                        return ascending ? dateA - dateB : dateB - dateA;
+                    }
+                    
+                    // Ordenamiento alfabético por defecto
+                    valueA = valueA.toLowerCase();
+                    valueB = valueB.toLowerCase();
+                    
+                    if (valueA < valueB) return ascending ? -1 : 1;
+                    if (valueA > valueB) return ascending ? 1 : -1;
+                    return 0;
+                });
+                
+                // Reordenar filas en el DOM
+                rows.forEach(row => tbody.appendChild(row));
+            }
+        })();
+        </script>';
         
     } catch (Exception $e) {
         echo '<div class="alert alert-danger">';
