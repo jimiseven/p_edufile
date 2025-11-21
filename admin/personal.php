@@ -58,33 +58,27 @@ $personal = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <style>
-        html, body {
+        body, html {
             height: 100%;
+            background: #f4f8fa;
+            overflow-x: hidden;
         }
-        body {
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
-            background: #f8f9fa;
-        }
-        .container-fluid, .row, main, .sidebar {
-            height: 100vh !important;
-            min-height: 100vh !important;
+        .container-fluid, .row {
+            height: 100%;
         }
         .sidebar {
             background: #19202a;
-            min-height: 100vh;
-            height: 100vh !important;
+            height: 100vh;
             position: sticky;
             top: 0;
         }
         main {
             background: #fff;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 1.5rem;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
-            height: 100vh;
-            padding: 20px;
         }
         .header-section {
             display: flex;
@@ -179,10 +173,6 @@ $personal = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
         /* Responsive */
         @media (max-width: 991px) {
-            .container-fluid, .row, .sidebar, main {
-                min-height: unset !important;
-                height: auto !important;
-            }
             .tabla-box, .table-responsive {
                 max-height: 55vh;
             }

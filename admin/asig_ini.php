@@ -36,30 +36,22 @@ $cursos_inicial = [
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         body { background: #f5f6fa; }
-        .main-content { margin-left: 250px; padding: 32px 24px; }
-        .sidebar { 
-            position: fixed; left: 0; top: 0; 
-            width: 250px; height: 100vh; 
-            background: #212c3a; color: #fff; 
-            z-index: 1000; 
-        }
+        .main-content { padding: 32px 24px; }
         .table-asig th { background: #e6f0fa; color: #335177; }
         .btn-asig { min-width: 110px; }
         
         @media (max-width: 900px) {
             .main-content { margin-left: 0; padding: 18px 4px; }
-            .sidebar { position: static; width: 100%; height: auto; }
         }
     </style>
-</head>
-<body>
-    <!-- Sidebar -->
-    <div class="sidebar d-flex flex-column">
-        <?php include '../includes/sidebar.php'; ?>
-    </div>
+    </head>
+    <body>
+    <div class="container-fluid g-0">
+        <div class="row g-0">
+            <?php include '../includes/sidebar.php'; ?>
 
-    <!-- Main content -->
-    <div class="main-content">
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="main-content">
         <div class="d-flex justify-content-between align-items-center">
             <div class="bg-white rounded shadow-sm p-4 mb-4">
                 <h2 class="mb-0" style="color:#5177b8;">
@@ -103,7 +95,10 @@ $cursos_inicial = [
                 </tbody>
             </table>
         </div>
+                </div>
+            </main>
+        </div>
     </div>
     <script src="../js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    </body>
+    </html>

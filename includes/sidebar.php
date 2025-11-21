@@ -135,6 +135,7 @@ function active($str, $current)
             border-radius: 6px;
             margin: 1px 0;
             border-left: 2px solid transparent;
+            box-sizing: border-box;
             transition: all .15s;
         }
 

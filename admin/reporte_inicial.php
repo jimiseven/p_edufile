@@ -54,18 +54,7 @@ foreach ($reporte_data as $row) {
             font-family: 'Segoe UI', system-ui, -apple-system;
         }
         .main-content { 
-            margin-left: 250px; 
             padding: 32px 24px; 
-        }
-        .sidebar { 
-            position: fixed; 
-            left: 0; 
-            top: 0; 
-            width: 250px; 
-            height: 100vh; 
-            background: #212c3a; 
-            color: #fff; 
-            z-index: 1000; 
         }
         
         /* Diseño mejorado */
@@ -189,7 +178,6 @@ foreach ($reporte_data as $row) {
         
         @media (max-width: 900px) {
             .main-content { margin-left: 0; padding: 18px 4px; }
-            .sidebar { position: static; width: 100%; height: auto; }
             .report-grid {
                 grid-template-columns: 1fr;
             }
@@ -197,10 +185,7 @@ foreach ($reporte_data as $row) {
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar d-flex flex-column">
-        <?php include '../includes/sidebar.php'; ?>
-    </div>
+    <?php include '../includes/sidebar.php'; ?>
 
     <!-- Main content -->
     <div class="main-content">

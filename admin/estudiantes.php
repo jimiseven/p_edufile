@@ -8,6 +8,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 1) {
     exit();
 }
 
+// Forzar que el sidebar marque 'estudiantes' como activo en esta página
+$_SESSION['force_active'] = 'estudiantes';
+
 $db = new Database();
 $conn = $db->connect();
 
@@ -146,7 +149,11 @@ $estudiantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <body>
     <div class="container-fluid g-0">
         <div class="row g-0">
-            <?php include '../includes/sidebar.php'; ?>
+            <?php
+                include '../includes/sidebar.php';
+                // Limpiar la bandera para no afectar otras páginas
+                unset($_SESSION['force_active']);
+            ?>
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h1 class="main-title">Listado de Estudiantes</h1>

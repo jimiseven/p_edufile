@@ -4,6 +4,9 @@ require_once '../config/database.php';
 if ($_SESSION['user_role'] != 1) { header('Location: ../index.php'); exit(); }
 $conn = (new Database())->connect();
 
+// Forzar que el sidebar marque 'Tablon' como activo en esta página
+$_SESSION['force_active'] = 'tablon';
+
 // Eliminar anuncio si se pidió
 if (isset($_GET['eliminar']) && is_numeric($_GET['eliminar'])) {
     $id_borrar = intval($_GET['eliminar']);
@@ -44,18 +47,37 @@ $anuncios = $stmt->fetchAll(PDO::FETCH_ASSOC);
             --shadow-color: rgba(28, 78, 172, 0.07);
         }
         
-        body { 
-            background: #f3f6fb; 
+        body, html {
+            height: 100%;
+            background: #f4f8fa;
+            overflow-x: hidden;
+        }
+        
+        body {
             font-family: 'Inter', Arial, sans-serif;
+        }
+
+        .container-fluid, .row {
+            height: 100%;
+        }
+        
+        .sidebar {
+            background: #19202a;
             height: 100vh;
-            overflow: hidden;
+            position: sticky;
+            top: 0;
+        }
+
+        main {
+            background: #fff;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 1.5rem;
         }
         
         .main-container {
             display: flex;
-            height: calc(100vh - 56px);
             gap: 1.5rem;
-            padding: 1.5rem 1.5rem 1.5rem 0;
         }
         
         .form-column {
@@ -230,7 +252,11 @@ $anuncios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <body>
     <div class="container-fluid">
         <div class="row">
-            <?php include '../includes/sidebar.php'; ?>
+            <?php
+                include '../includes/sidebar.php';
+                // Limpiar la bandera para no afectar otras páginas
+                unset($_SESSION['force_active']);
+            ?>
 
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="main-container">

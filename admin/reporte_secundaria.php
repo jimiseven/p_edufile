@@ -71,22 +71,8 @@ foreach ($reporte_data as $row) {
             margin: 0;
         }
 
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            background: #212c3a;
-            color: #fff;
-            position: fixed;
-            left: 0;
-            top: 0;
-            overflow-y: auto;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            z-index: 1000;
-        }
-
         .main-content {
             flex: 1;
-            margin-left: var(--sidebar-width);
             padding: 2rem;
             min-height: 100vh;
             overflow-y: auto;
@@ -296,12 +282,6 @@ foreach ($reporte_data as $row) {
                 flex-direction: column;
             }
 
-            .sidebar {
-                position: static;
-                width: 100%;
-                height: auto;
-            }
-
             .main-content {
                 margin-left: 0;
                 padding: 1rem;
@@ -310,11 +290,7 @@ foreach ($reporte_data as $row) {
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <?php include '../includes/sidebar.php'; ?>
-    </div>
-</div>
+    <?php include '../includes/sidebar.php'; ?>
 
     <!-- Main content -->
     <div class="main-content">
